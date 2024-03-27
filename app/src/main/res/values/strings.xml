@@ -107,8 +107,12 @@
 
 
     <string-array name="classes_array">
-        <item>Class 1</item>
-        <item>Class 2</item>
+        <item>Senior one</item>
+        <item>Senior Two</item>
+        <item>Senior Three</item>
+        <item>Senior Four</item>
+        <item>Senior Five</item>
+        <item>Senior Six</item>
         <!-- Add more classes as needed -->
     </string-array>
 

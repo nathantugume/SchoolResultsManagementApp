@@ -205,8 +205,8 @@ public class ManageResultsActivity extends AppCompatActivity {
         String selectedResultType = getSelectedResultType();
 
 
-
         // Perform validation if needed
+        validateInputs();
 
         // Create a map to store the result data
         Map<String, Object> resultData = new HashMap<>();
@@ -232,6 +232,45 @@ public class ManageResultsActivity extends AppCompatActivity {
     private String getSelectedResultType() {
         Chip selectedChip = findViewById(chipGroupResultType.getCheckedChipId());
         return selectedChip != null ? selectedChip.getText().toString() : "";
+    }
+
+    private boolean validateInputs() {
+        // Validate selected class
+        String selectedClass = spinnerClass.getSelectedItem().toString();
+        if (selectedClass.isEmpty()) {
+            Toast.makeText(this, "Please select a class", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate selected student
+        String selectedStudent = spinnerStudent.getSelectedItem().toString();
+        if (selectedStudent.isEmpty()) {
+            Toast.makeText(this, "Please select a student", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate selected subject
+        String selectedSubject = subjectAutoComplete.getText().toString().trim();
+        if (selectedSubject.isEmpty()) {
+            Toast.makeText(this, "Please enter a subject", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate selected term
+        String selectedTerm = spinnerTerms.getSelectedItem().toString();
+        if (selectedTerm.isEmpty()) {
+            Toast.makeText(this, "Please select a term", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate selected result type
+        String selectedResultType = getSelectedResultType();
+        if (selectedResultType.isEmpty()) {
+            Toast.makeText(this, "Please select a result type", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
     }
 
 }

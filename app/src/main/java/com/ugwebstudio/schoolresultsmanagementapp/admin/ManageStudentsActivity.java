@@ -40,6 +40,7 @@ public class ManageStudentsActivity extends AppCompatActivity {
     private StudentAdapter adapter;
     private List<Student> studentList;
     private FirebaseFirestore db;
+    private String selectedClass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +119,8 @@ public class ManageStudentsActivity extends AppCompatActivity {
 
 
         // Get Material AutoCompleteTextViews for subjects and classes
-        MaterialAutoCompleteTextView autoCompleteTextViewClass = dialogView.findViewById(R.id.autoCompleteTextViewStudentClass);
+        MaterialAutoCompleteTextView autoCompleteTextViewClass =
+                dialogView.findViewById(R.id.autoCompleteTextViewStudentClass);
 
         // Get ChipGroups for displaying selected subjects and classes
         ChipGroup chipGroupClass = dialogView.findViewById(R.id.chipGroupClass);
@@ -133,7 +135,7 @@ public class ManageStudentsActivity extends AppCompatActivity {
 
         autoCompleteTextViewClass.setOnItemClickListener((parent, view, position, id) -> {
             // Add selected class as a chip
-            String selectedClass = parent.getItemAtPosition(position).toString();
+             selectedClass = parent.getItemAtPosition(position).toString();
             Chip chip = new Chip(chipGroupClass.getContext());
             chip.setText(selectedClass);
             chip.setCloseIconVisible(true);
@@ -159,19 +161,10 @@ public class ManageStudentsActivity extends AppCompatActivity {
 
 
 
-                    // Get selected classes
-                    StringBuilder classesBuilder = new StringBuilder();
-                    for (int i = 0; i < chipGroupClass.getChildCount(); i++) {
-                        Chip chip = (Chip) chipGroupClass.getChildAt(i);
-                        classesBuilder.append(chip.getText());
-                        if (i < chipGroupClass.getChildCount() - 1) {
-                            classesBuilder.append(", ");
-                        }
-                    }
-                    String studentClass = classesBuilder.toString();
 
                     // Add the student
-                    addStudents(name, phone, studentClass, studentParent, studentDOB, email,address,parentPhone,academicYear);
+                    addStudents(name, phone,selectedClass , studentParent, studentDOB, email,address,parentPhone,academicYear);
+
 
                     // Dismiss the dialog
                     dialog.dismiss();
@@ -219,7 +212,8 @@ public class ManageStudentsActivity extends AppCompatActivity {
                                 if (authTask.isSuccessful()) {
                                     // Account created successfully
                                     Log.d(TAG, "Account created successfully for " + email);
-
+                                    studentList.add(student);
+                                    adapter.notifyDataSetChanged();
                                     // Send password reset email to the student
                                     sendPasswordResetEmail(email);
                                 } else {
