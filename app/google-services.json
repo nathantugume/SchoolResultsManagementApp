@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "795066410275",
+    "project_id": "schoolresultsmanagementapp",
+    "storage_bucket": "schoolresultsmanagementapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:795066410275:android:8fe462e7330d5a2b049896",
+        "android_client_info": {
+          "package_name": "com.ugwebstudio.schoolresultsmanagementapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkhFPkeyet6N9a1RPgI9-GWgXMA2VTxlE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
