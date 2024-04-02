@@ -5,6 +5,7 @@
     <string name="dd_mm_yyyy">DD/MM/YYYY</string>
     <string name="add_students_floating_button">add students floating button</string>
     <string name="assessment">Assessment</string>
+    <string name="search_student">Search student...</string>
 
     <string-array name="subjects_array">
         <!-- A-Level Subjects -->

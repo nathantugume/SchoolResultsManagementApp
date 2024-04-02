@@ -16,6 +16,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -41,6 +42,8 @@ public class ManageResultsActivity extends AppCompatActivity {
     private String studentId;
 
     private List<String> studentIds;
+    private TextInputEditText marksEditText;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +59,7 @@ public class ManageResultsActivity extends AppCompatActivity {
         buttonAddResult = findViewById(R.id.buttonAddResult);
         spinnerTerms = findViewById(R.id.spinnerTerm);
         subjectAutoComplete = findViewById(R.id.autoCompleteTextViewSubject);
+        marksEditText = findViewById(R.id.editTextMarks);
 
 // Find the ChipGroup in your layout
         chipGroupResultType = findViewById(R.id.chipGroupResultType);
@@ -203,6 +207,7 @@ public class ManageResultsActivity extends AppCompatActivity {
         String selectedSubject = subjectAutoComplete.getText().toString();
         String selectedTerm = spinnerTerms.getSelectedItem().toString();
         String selectedResultType = getSelectedResultType();
+        int marks = Integer.parseInt(marksEditText.getText().toString().trim());
 
 
         // Perform validation if needed
@@ -216,6 +221,7 @@ public class ManageResultsActivity extends AppCompatActivity {
         resultData.put("term", selectedTerm);
         resultData.put("resultType", selectedResultType);
         resultData.put("studentId", studentId);
+        resultData.put("marks",marks);
 
         // Add the result data to Firestore
         db.collection("results")
@@ -267,6 +273,14 @@ public class ManageResultsActivity extends AppCompatActivity {
         String selectedResultType = getSelectedResultType();
         if (selectedResultType.isEmpty()) {
             Toast.makeText(this, "Please select a result type", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        String marks = marksEditText.getText().toString();
+
+        if (marks.isEmpty()){
+            Toast.makeText(this, "Please Enter the marks", Toast.LENGTH_SHORT).show();
+            marksEditText.requestFocus();
+            marksEditText.setError("Please Enter the marks");
             return false;
         }
 

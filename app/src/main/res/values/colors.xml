@@ -15,5 +15,9 @@
         <!-- Background color -->
         <color name="backgroundColor">#FFFFFF</color>
 
+        <color name="row_color_even">#F0F0F0</color> <!-- Light gray -->
+        <color name="row_color_odd">#FFFFFF</color> <!-- White -->
+
+
 
 </resources>
