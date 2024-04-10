@@ -17,14 +17,17 @@ public class ResultsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_results);
 
-        MaterialCardView view_results, manage_results;
+        MaterialCardView view_results, manage_results, manage_grading;
 
         view_results = findViewById(R.id.view_results_card);
         manage_results = findViewById(R.id.manage_results_card);
+        manage_grading = findViewById(R.id.manage_grading_system_card);
 
         view_results.setOnClickListener(view -> startActivity(new Intent(ResultsActivity.this,ViewResultsActivity.class)));
 
         manage_results.setOnClickListener(view -> startActivity(new Intent(ResultsActivity.this, ManageResultsActivity.class)));
+
+        manage_grading.setOnClickListener(view -> startActivity(new Intent(ResultsActivity.this, GradingSystemActivity.class)));
 
 
     }

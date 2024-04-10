@@ -31,14 +31,17 @@
         <!-- NestedScrollView for scrolling content -->
 
 
-        <LinearLayout
-            android:layout_width="wrap_content"
+
+        <GridLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:layout_margin="10dp"
             android:id="@+id/view_results_layout"
             android:layout_centerInParent="true"
-            android:layout_centerVertical="true">
+            android:layout_centerVertical="true"
+            android:columnCount="2"
+            >
+
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -48,14 +51,15 @@
                 android:id="@+id/view_results_card"
 
                 >
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
                     android:orientation="vertical">
                     <ImageView
-                        android:layout_width="150dp"
-                        android:layout_height="150dp"
+                        android:layout_width="130dp"
+                        android:layout_height="130dp"
                         android:src="@mipmap/view_resultspng"
                         />
                     <TextView
@@ -63,11 +67,10 @@
                         android:layout_height="wrap_content"
                         android:text="View Results"
                         android:textStyle="bold"
-                        android:textSize="20sp"/>
+                        android:textSize="16sp"/>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -82,8 +85,8 @@
                     android:layout_margin="10dp"
                     android:orientation="vertical">
                     <ImageView
-                        android:layout_width="150dp"
-                        android:layout_height="150dp"
+                        android:layout_width="130dp"
+                        android:layout_height="130dp"
                         android:src="@mipmap/manage_results"
                         />
                     <TextView
@@ -91,14 +94,46 @@
                         android:layout_height="wrap_content"
                         android:text="Manage Results"
                         android:textStyle="bold"
-                        android:textSize="20sp"/>
+                        android:textSize="16sp"/>
 
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
 
-        </LinearLayout>
+
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="10dp"
+                android:elevation="15dp"
+                android:layout_margin="10dp"
+                android:id="@+id/manage_grading_system_card"
+                >
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:orientation="vertical">
+                    <ImageView
+                        android:layout_width="130dp"
+                        android:layout_height="130dp"
+                        android:src="@mipmap/manage_results"
+                        />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Grading System"
+                        android:textStyle="bold"
+                        android:textSize="16sp"/>
+
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+
+        </GridLayout>
 
 
         <!-- Bottom Navigation View -->

@@ -28,10 +28,11 @@ public class MainActivity extends AppCompatActivity {
         CardView manage_teachers = findViewById(R.id.manage_teacher_card);
         CardView manage_students = findViewById(R.id.manage_student_card);
         CardView manage_class = findViewById(R.id.manage_classes_card);
+        CardView view_reports_card = findViewById(R.id.viewReportsCard);
         manage_teachers.setOnClickListener(view -> startActivity(new Intent(MainActivity.this,ManageTeachersActivity.class)));
         manage_students.setOnClickListener(view -> startActivity(new Intent(MainActivity.this,ManageStudentsActivity.class)));
         manage_class.setOnClickListener(view -> startActivity(new Intent(MainActivity.this,ManageClassesActivity.class)));
         manage_results.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, ResultsActivity.class)));
-
+        view_reports_card.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, StudentReportActivity.class)));
     }
 }

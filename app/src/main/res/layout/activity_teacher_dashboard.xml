@@ -26,11 +26,10 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="@color/colorPrimary"
                 app:navigationIcon="@drawable/ic_menu"
-                app:title="Teacher DashBoard"
+                app:title="Admin DashBoard"
                 app:menu="@menu/admin_top_menu"
                 app:titleCentered="true"
                 app:titleTextColor="@color/white"
-                style="@style/Widget.Material3.Toolbar"
                 />
 
         </com.google.android.material.appbar.AppBarLayout>
@@ -41,6 +40,9 @@
             android:layout_height="match_parent"
             android:layout_below="@id/topBar"
             android:orientation="vertical">
+
+            <!-- Cards representing features -->
+
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -94,7 +96,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="View, enroll, or modify classes"
+                        android:text="View, add, or modify classes"
                         android:textSize="16sp"
                         android:textColor="@android:color/black" />
                 </LinearLayout>
@@ -102,7 +104,9 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp">
+                android:layout_margin="16dp"
+                android:id="@+id/manage_results_card"
+                >
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -129,6 +133,7 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:id="@+id/viewReportsCard"
                 android:layout_margin="16dp">
 
                 <LinearLayout
