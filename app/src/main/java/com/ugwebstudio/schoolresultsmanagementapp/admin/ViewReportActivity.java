@@ -20,26 +20,32 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.ugwebstudio.schoolresultsmanagementapp.R;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentResults;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ViewReportActivity extends AppCompatActivity {
 
     private TableLayout tableLayout;
     private FirebaseFirestore db;
     private TextView studentNameTxt;
+    private List<Integer> aggregatesList = new ArrayList<>();
+
     private static final Map<String, Integer> gradePoints = new HashMap<>();
     private float average;
+
     static {
         gradePoints.put("A", 1);
         gradePoints.put("B", 2);
         gradePoints.put("C", 3);
         gradePoints.put("D", 4);
-        gradePoints.put("E", 5);
-        gradePoints.put("O", 6);
-        gradePoints.put("F", 7);
+        gradePoints.put("P", 8);
+        gradePoints.put("F", 9);
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,45 +69,84 @@ public class ViewReportActivity extends AppCompatActivity {
     }
 
     private void fetchStudentResults(String selectedClass, String selectedTerm, String studentId) {
-        // Query Firestore for student results
-        db.collection("results")
-                .whereEqualTo("class", selectedClass)
-                .whereEqualTo("term", selectedTerm)
-                .whereEqualTo("studentId", studentId)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            Map<String, Map<String, Integer>> subjectResults = new HashMap<>();
 
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                StudentResults studentResults = document.toObject(StudentResults.class);
-                                studentNameTxt.setText(studentResults.getStudent());
+        // Determine if this is for the third term
+        boolean isThirdTerm = "Third Term".equalsIgnoreCase(selectedTerm);
+        if (isThirdTerm) {
 
-                                // Get subject and result type from Firestore document
-                                String subject = document.getString("subject");
-                                String resultType = document.getString("resultType");
-                                int marks = studentResults.getMarks();
+            // If it's the third term, fetch results from all terms to calculate the cumulative average
+            String[] terms = {"First Term", "Second Term", "Third Term"};
+            Map<String, List<Integer>> subjectMarks = new HashMap<>();
+            AtomicInteger termsProcessed = new AtomicInteger(0);
 
-                                // Initialize the inner map if subject is encountered for the first time
-                                if (!subjectResults.containsKey(subject)) {
-                                    subjectResults.put(subject, new HashMap<>());
+            for (String term : terms) {
+                db.collection("results")
+                        .whereEqualTo("class", selectedClass)
+                        .whereEqualTo("term", term)
+                        .whereEqualTo("studentId", studentId)
+                        .get()
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    String subject = document.getString("subject");
+                                    int marks = document.getLong("marks").intValue();
+                                    subjectMarks.computeIfAbsent(subject, k -> new ArrayList<>()).add(marks);
                                 }
 
-                                // Add marks to the result type for the subject
-                                subjectResults.get(subject).put(resultType, marks);
+                                // After all terms are processed, calculate the grade for the third term
+                                if (termsProcessed.incrementAndGet() == terms.length) {
+                                    applyThirdTermGrades(subjectMarks);
+                                }
+                            } else {
+                                Log.e("ViewReportActivity", "Error getting results: ", task.getException());
                             }
+                        });
 
-                            // Add a row for each subject with each result type
-                            for (Map.Entry<String, Map<String, Integer>> entry : subjectResults.entrySet()) {
-                                addTableRow(entry.getKey(), entry.getValue());
+
+            }
+        } else {
+            // Query Firestore for student results
+            db.collection("results")
+                    .whereEqualTo("class", selectedClass)
+                    .whereEqualTo("term", selectedTerm)
+                    .whereEqualTo("studentId", studentId)
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                Map<String, Map<String, Integer>> subjectResults = new HashMap<>();
+
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    StudentResults studentResults = document.toObject(StudentResults.class);
+                                    studentNameTxt.setText(studentResults.getStudent());
+
+                                    // Get subject and result type from Firestore document
+                                    String subject = document.getString("subject");
+                                    String resultType = document.getString("resultType");
+                                    int marks = studentResults.getMarks();
+
+                                    // Initialize the inner map if subject is encountered for the first time
+                                    if (!subjectResults.containsKey(subject)) {
+                                        subjectResults.put(subject, new HashMap<>());
+                                    }
+
+                                    // Add marks to the result type for the subject
+                                    subjectResults.get(subject).put(resultType, marks);
+                                }
+
+                                // Add a row for each subject with each result type
+                                for (Map.Entry<String, Map<String, Integer>> entry : subjectResults.entrySet()) {
+                                    addTableRow(entry.getKey(), entry.getValue());
+                                }
+                            } else {
+                                Log.e("StudentReportsActivity", "Error getting student results: ", task.getException());
                             }
-                        } else {
-                            Log.e("StudentReportsActivity", "Error getting student results: ", task.getException());
                         }
-                    }
-                });
+                    });
+        }
+
+
     }
 
     private void addTableRow(String subject, Map<String, Integer> resultTypes) {
@@ -119,16 +164,39 @@ public class ViewReportActivity extends AppCompatActivity {
         EditText beginningEditText = createEditText(getMarksString(resultTypes, "Beginning of Term"));
         EditText midtermEditText = createEditText(getMarksString(resultTypes, "Midterm"));
         EditText endEditText = createEditText(getMarksString(resultTypes, "End of Term"));
-        TextView gradeTextView = createTextView(calculateGrades(getMarks(resultTypes, "Beginning of Term"), getMarks(resultTypes, "Midterm"), getMarks(resultTypes, "End of Term")));
 
-        // Add EditTexts and TextView to the row
-        row.addView(beginningEditText);
-        row.addView(midtermEditText);
-        row.addView(endEditText);
-        row.addView(gradeTextView);
+        calculateGrades(getMarks(resultTypes, "Beginning of Term"), getMarks(resultTypes, "Midterm"), getMarks(resultTypes, "End of Term"), new GradeCallback() {
+            @Override
+            public void onGradeComputed(String grade, int aggregate, String division) {
+                TextView gradeTextView = createTextView(grade);
+                TextView aggregatesTxt = findViewById(R.id.aggregates);
+                TextView divisionTxt = findViewById(R.id.report_division);
+                // Ensure all UI updates are done on the main thread
+                Collections.sort(aggregatesList);
+                Collections.reverse(aggregatesList);
+                int totalAggregate = 0;
+                for (int i = 0; i < Math.min(8, aggregatesList.size()); i++) {
+                    totalAggregate += aggregatesList.get(i);
+                }
+                String div = getDivision(totalAggregate);
 
-        // Add the row to the TableLayout
-        tableLayout.addView(row);
+                Log.d("aggregates", String.valueOf(aggregate));
+                int finalTotalAggregate = totalAggregate;
+                runOnUiThread(() -> {
+                    row.addView(beginningEditText);
+                    row.addView(midtermEditText);
+                    row.addView(endEditText);
+                    row.addView(gradeTextView); // Updated to include division
+                    aggregatesTxt.setText(String.valueOf(finalTotalAggregate));
+                    divisionTxt.setText(div);
+
+
+                    // Add the row to the TableLayout
+                    tableLayout.addView(row);
+                });
+            }
+        });
+
     }
 
     private String getMarksString(Map<String, Integer> resultTypes, String resultType) {
@@ -139,10 +207,7 @@ public class ViewReportActivity extends AppCompatActivity {
         return resultTypes.getOrDefault(resultType, 0);
     }
 
-//    private String calculateGrade(int beginningMarks, int midMarks, int endMarks) {
-//        // Assume this method will use the fetched grading scale from Firestore to calculate the grade
-//        return "A"; // Placeholder for the actual grade calculation logic
-//    }
+
 
     private void setRowBackgroundColor(TableRow row, int childCount) {
         if (childCount % 2 == 0) {
@@ -153,65 +218,71 @@ public class ViewReportActivity extends AppCompatActivity {
     }
 
 
+    public interface GradeCallback {
+        void onGradeComputed(String grade, int aggregate, String division);
+    }
 
 
-
-
-    private String calculateGrades(int beginningMarks, int midMarks, int endMarks) {
-
-
-
+    private void calculateGrades(int beginningMarks, int midMarks, int endMarks, GradeCallback callback) {
         float average = ((float) beginningMarks + (float) midMarks + (float) endMarks) / 3;
-
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         db.collection("gradingScales")
                 .orderBy("from")
                 .get()
                 .addOnCompleteListener(task -> {
-                    String[] gra;
                     if (task.isSuccessful()) {
                         String[] grades = {"Not Graded"};
+                        int aggregate = 0;
+
+
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            if (Objects.requireNonNull(document.getString("level")).equalsIgnoreCase("o_level")){
+                            if ("o_level".equalsIgnoreCase(document.getString("level"))) {
                                 float minMark = document.getLong("from");
                                 float maxMark = document.getLong("to");
                                 if (average >= minMark && average <= maxMark) {
                                     grades[0] = document.getString("grade");
-                                    break; // Found the correct grade, exit loop
+                                    aggregate = calculateAggregate(grades[0]); // Calculate aggregate for this grade
+                                    aggregatesList.add(aggregate);
+
+                                    break;
                                 }
-
                             }
-
                         }
-                        // Now you have the grade, you can calculate the aggregate if needed
-                        int aggregate = calculateAggregate(grades);
-                         gra = grades;
 
-                        Log.d("calculateGrades", "Average: " + average + ", Grade: " + grades[0] + ", Aggregate: " + aggregate);
 
+                        String division = getDivision(aggregate); // Determine the division based on the aggregate
+                        callback.onGradeComputed(grades[0], aggregate, division);
                     } else {
                         Log.w("calculateGrades", "Error getting documents.", task.getException());
                     }
-
                 });
-        return "null";
     }
 
-    private int calculateAggregate(String[] grades) {
-        // Implementation depends on how you map grades to points or other aggregate calculations
+    private String getDivision(int totalAggregate) {
+        if (totalAggregate <= 32) {
+            return "Division I";
+        } else if (totalAggregate <= 45) {
+            return "Division II";
+        } else if (totalAggregate <= 58) {
+            return "Division III";
+        } else if (totalAggregate <= 72) {
+            return "Division IV";
+        } else {
+            return "Ungraded";
+        }
+    }
+
+
+    private int calculateAggregate(String grade) {
         int aggregate = 0;
-        for (String grade : grades) {
-            if (gradePoints.containsKey(grade)) {
-                aggregate += gradePoints.get(grade);
-            } else {
-                Log.e("calculateAggregate", "Invalid grade: " + grade);
-            }
+        if (gradePoints.containsKey(grade)) {
+            aggregate = gradePoints.get(grade);
+        } else {
+            Log.e("calculateAggregate", "Invalid grade: " + grade);
         }
         return aggregate;
     }
-
-
 
     private TextView createTextView(String text) {
         TextView textView = new TextView(this);
@@ -230,4 +301,62 @@ public class ViewReportActivity extends AppCompatActivity {
         editText.setTextColor(ContextCompat.getColor(this, R.color.black));
         return editText;
     }
+
+
+    private void applyThirdTermGrades(Map<String, List<Integer>> subjectMarks) {
+        for (Map.Entry<String, List<Integer>> entry : subjectMarks.entrySet()) {
+            double average = entry.getValue().stream().mapToInt(Integer::intValue).average().orElse(0.0);
+            String grade = calculateGradesFromAverage(average, new GradeCallback() {
+                @Override
+                public void onGradeComputed(String grade, int aggregate, String division) {
+                     aggregate = calculateAggregate(grade);
+                }
+            });
+
+
+            // Update UI for third term using calculated average
+            runOnUiThread(() -> {
+                addTableRow(entry.getKey(), Collections.singletonMap("Third Term", (int) average));
+            });
+        }
+    }
+
+
+
+    private String calculateGradesFromAverage(double average, GradeCallback callback) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("gradingScales")
+                .orderBy("from")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        String[] grades = {"Not Graded"};
+                        int aggregate = 0;
+
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            if ("o_level".equalsIgnoreCase(document.getString("level"))) {
+                                float minMark = document.getLong("from");
+                                float maxMark = document.getLong("to");
+                                if (average >= minMark && average <= maxMark) {
+                                    grades[0] = document.getString("grade");
+                                    aggregate = calculateAggregate(grades[0]);
+                                    aggregatesList.add(aggregate);
+                                    break;
+                                }
+                            }
+                        }
+
+                        String division = getDivision(aggregate);
+                        callback.onGradeComputed(grades[0], aggregate, division);
+                    } else {
+                        Log.w("calculateGrades", "Error getting documents.", task.getException());
+                    }
+                });
+        return null;
+    }
+
+
+
+
 }

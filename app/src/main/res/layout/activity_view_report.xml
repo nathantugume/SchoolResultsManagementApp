@@ -3,9 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -25,7 +22,7 @@
                 android:theme="@style/ThemeOverlay.MaterialComponents.Toolbar.Primary"
                 app:menu="@menu/admin_top_menu"
                 app:navigationIcon="@drawable/ic_back"
-                app:title="Student Results"
+                app:title="Student Report"
                 app:titleCentered="true"
                 app:titleTextColor="@color/white" />
 
@@ -86,7 +83,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Beginning"
+                            android:text="Beg"
                             android:textAppearance="?android:attr/textAppearanceMedium"
                             android:textStyle="bold"
                             android:padding="8dp" />
@@ -120,20 +117,62 @@
 
                     <!-- Table rows will be dynamically added here -->
                 </TableLayout>
+
+
             </ScrollView>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30dp"
+                android:layout_marginEnd="30dp"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aggregates :"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    />
+                <TextView
+                    android:id="@+id/aggregates"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:text="loading..."
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30dp"
+                android:layout_marginEnd="30dp"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Division :"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+
+                    android:id="@+id/report_division"
+                    android:text="loading..."
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    />
+            </LinearLayout>
 
         </LinearLayout>
 
-        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/updateButton"
-            android:text="Update"
-            android:layout_alignParentEnd="true"
-            android:layout_above="@id/printButton"
-            android:layout_marginBottom="20dp"
-            app:icon="@drawable/ic_edit"/>
+
         <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -158,13 +197,11 @@
             app:labelVisibilityMode="labeled"
             app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
             app:menu="@menu/admin_bottom_menu"
-            android:layout_alignParentBottom="true" />
+            android:layout_alignParentBottom="true"
+            />
 
 
 
     </RelativeLayout>
-
-
-
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

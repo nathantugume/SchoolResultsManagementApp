@@ -76,6 +76,7 @@ public class StudentReportActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 selectedTerm = parent.getItemAtPosition(position).toString();
+                loadStudentResultsFromFirestore(selectedClass,selectedClass);
 
             }
 
