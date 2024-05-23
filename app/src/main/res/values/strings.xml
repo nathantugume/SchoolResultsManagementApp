@@ -123,6 +123,20 @@
     <string name="students">Students</string>
     <string name="results">Results</string>
     <string name="reports">Reports</string>
+    <string name="don_t_have_an_account_sign_up">Don\'t have an account? Sign up</string>
+    <string name="admin_login">Admin Login</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="student">Student</string>
+    <string name="teacher">Teacher</string>
+    <string name="admin">Admin</string>
+    <string name="results_txt">Results</string>
+    <string name="home">Home</string>
+    <string name="senior_one">Senior One</string>
+    <string name="menu_icon">menu icon</string>
+    <string name="student_id">Student Id :</string>
+    <string name="subject_s">Subject(s):</string>
 
 
 </resources>

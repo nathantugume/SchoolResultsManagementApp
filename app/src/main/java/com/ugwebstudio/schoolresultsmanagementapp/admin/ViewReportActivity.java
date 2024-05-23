@@ -14,11 +14,14 @@ import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.ugwebstudio.schoolresultsmanagementapp.R;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentResults;
+import com.ugwebstudio.schoolresultsmanagementapp.teacher.ManageResultsActivity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,87 +69,140 @@ public class ViewReportActivity extends AppCompatActivity {
 
         // Fetch student results from Firestore
         fetchStudentResults(selectedClass, selectedTerm, studentId);
+
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+
+        toolbar.setNavigationOnClickListener(view -> onBackPressed());
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_app_bar);
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.bottom_home){
+                startActivity(new Intent(ViewReportActivity.this, MainActivity.class));
+            }
+            if (item.getItemId() == R.id.bottom_report){
+                startActivity(new Intent(ViewReportActivity.this, StudentReportActivity.class));
+
+            }
+            if (item.getItemId() == R.id.bottom_classes){
+                startActivity(new Intent(ViewReportActivity.this, ManageClassesActivity.class));
+
+            }
+            if (item.getItemId() == R.id.bottom_results){
+                startActivity(new Intent(ViewReportActivity.this, ManageResultsActivity.class));
+
+            }
+
+            return false;
+        });
     }
 
     private void fetchStudentResults(String selectedClass, String selectedTerm, String studentId) {
 
         // Determine if this is for the third term
-        boolean isThirdTerm = "Third Term".equalsIgnoreCase(selectedTerm);
-        if (isThirdTerm) {
-
-            // If it's the third term, fetch results from all terms to calculate the cumulative average
-            String[] terms = {"First Term", "Second Term", "Third Term"};
-            Map<String, List<Integer>> subjectMarks = new HashMap<>();
-            AtomicInteger termsProcessed = new AtomicInteger(0);
-
-            for (String term : terms) {
-                db.collection("results")
-                        .whereEqualTo("class", selectedClass)
-                        .whereEqualTo("term", term)
-                        .whereEqualTo("studentId", studentId)
-                        .get()
-                        .addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                    String subject = document.getString("subject");
-                                    int marks = document.getLong("marks").intValue();
-                                    subjectMarks.computeIfAbsent(subject, k -> new ArrayList<>()).add(marks);
-                                }
-
-                                // After all terms are processed, calculate the grade for the third term
-                                if (termsProcessed.incrementAndGet() == terms.length) {
-                                    applyThirdTermGrades(subjectMarks);
-                                }
-                            } else {
-                                Log.e("ViewReportActivity", "Error getting results: ", task.getException());
-                            }
-                        });
-
-
-            }
+        if ("Third Term".equalsIgnoreCase(selectedTerm)) {
+            // Fetch and calculate third-term results
+            fetchAndCalculateThirdTerm(selectedClass, studentId);
         } else {
-            // Query Firestore for student results
-            db.collection("results")
-                    .whereEqualTo("class", selectedClass)
-                    .whereEqualTo("term", selectedTerm)
-                    .whereEqualTo("studentId", studentId)
-                    .get()
-                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                            if (task.isSuccessful()) {
-                                Map<String, Map<String, Integer>> subjectResults = new HashMap<>();
-
-                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                    StudentResults studentResults = document.toObject(StudentResults.class);
-                                    studentNameTxt.setText(studentResults.getStudent());
-
-                                    // Get subject and result type from Firestore document
-                                    String subject = document.getString("subject");
-                                    String resultType = document.getString("resultType");
-                                    int marks = studentResults.getMarks();
-
-                                    // Initialize the inner map if subject is encountered for the first time
-                                    if (!subjectResults.containsKey(subject)) {
-                                        subjectResults.put(subject, new HashMap<>());
-                                    }
-
-                                    // Add marks to the result type for the subject
-                                    subjectResults.get(subject).put(resultType, marks);
-                                }
-
-                                // Add a row for each subject with each result type
-                                for (Map.Entry<String, Map<String, Integer>> entry : subjectResults.entrySet()) {
-                                    addTableRow(entry.getKey(), entry.getValue());
-                                }
-                            } else {
-                                Log.e("StudentReportsActivity", "Error getting student results: ", task.getException());
-                            }
-                        }
-                    });
+            // Fetch and display regular term results
+            fetchAndDisplayRegularResults(selectedClass, selectedTerm, studentId);
         }
 
 
+    }
+
+    private void fetchAndDisplayRegularResults(String selectedClass, String selectedTerm, String studentId) {
+        // Fetch and display regular term results
+        db.collection("results")
+                .whereEqualTo("class", selectedClass)
+                .whereEqualTo("term", selectedTerm)
+                .whereEqualTo("studentId", studentId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Map<String, Map<String, Integer>> subjectResults = new HashMap<>();
+                        task.getResult().forEach(document -> {
+                            StudentResults studentResults = document.toObject(StudentResults.class);
+                            studentNameTxt.setText(studentResults.getStudent());
+
+                            // Get subject and result type from Firestore document
+                            String subject = document.getString("subject");
+                            String resultType = document.getString("resultType");
+                            int marks = studentResults.getMarks();
+
+                            // Initialize the inner map if subject is encountered for the first time
+                            subjectResults.putIfAbsent(subject, new HashMap<>());
+                            subjectResults.get(subject).put(resultType, marks);
+                        });
+
+                        // Display regular term results
+                        subjectResults.forEach((subject, resultTypes) -> addTableRow(subject, resultTypes));
+                    } else {
+                        Log.e("ViewReportActivity", "Error getting results: ", task.getException());
+                    }
+                });
+    }
+
+    private void fetchAndCalculateThirdTerm(String selectedClass, String studentId) {
+        // Fetch all terms for the selected student and class
+        db.collection("results")
+                .whereEqualTo("class", selectedClass)
+                .whereEqualTo("studentId", studentId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Map<String, List<Integer>> subjectMarks = new HashMap<>();
+                        task.getResult().forEach(document -> {
+                            String term = document.getString("term");
+                            String subject = document.getString("subject");
+                            int marks = document.getLong("marks").intValue();
+
+                            // Add marks to the subject
+                            subjectMarks.computeIfAbsent(subject, k -> new ArrayList<>()).add(marks);
+                        });
+
+                        // Calculate and display third-term report
+                        subjectMarks.forEach((subject, marksList) -> {
+                            double average = marksList.stream().mapToInt(Integer::intValue).average().orElse(0.0);
+                            String grade = calculateGradeFromAverage(average);
+                            addTableRow(subject, Collections.singletonMap("Third Term", (int) average), grade);
+                        });
+                    } else {
+                        Log.e("ViewReportActivity", "Error getting results: ", task.getException());
+                    }
+                });
+    }
+
+    private String calculateGradeFromAverage(double average) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Assuming 'gradingScales' is your Firestore collection containing grading scale documents
+        db.collection("gradingScales")
+                .orderBy("from")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        String grade = "Not Graded";
+
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            if ("o_level".equalsIgnoreCase(document.getString("level"))) {
+                                float minMark = document.getLong("from");
+                                float maxMark = document.getLong("to");
+                                if (average >= minMark && average <= maxMark) {
+                                    grade = document.getString("grade");
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Use the grade here or pass it to another method for further processing
+                        // For simplicity, let's just log the grade
+                        Log.d("calculateGradeFromAverage", "Grade: " + grade);
+                    } else {
+                        Log.w("calculateGradeFromAverage", "Error getting documents.", task.getException());
+                    }
+                });
+
+        return null; // Return null temporarily since we're using an asynchronous operation
     }
 
     private void addTableRow(String subject, Map<String, Integer> resultTypes) {
@@ -198,7 +254,24 @@ public class ViewReportActivity extends AppCompatActivity {
         });
 
     }
+    // Overloaded addTableRow method with grade parameter
+    private void addTableRow(String subject, Map<String, Integer> resultTypes, String grade) {
+        TableRow row = new TableRow(this);
+        // Set up row...
 
+        // Add views for subject, result types, and grade
+        TextView subjectTextView = createTextView(subject);
+        row.addView(subjectTextView);
+        resultTypes.forEach((resultType, marks) -> {
+            EditText editText = createEditText(String.valueOf(marks));
+            row.addView(editText);
+        });
+        TextView gradeTextView = createTextView(grade);
+        row.addView(gradeTextView);
+
+        // Add row to table layout
+        tableLayout.addView(row);
+    }
     private String getMarksString(Map<String, Integer> resultTypes, String resultType) {
         return resultTypes.containsKey(resultType) ? String.valueOf(resultTypes.get(resultType)) : "-";
     }

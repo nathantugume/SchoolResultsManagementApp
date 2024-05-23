@@ -1,23 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_margin="5dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="5dp"
 
-    <TextView
-        android:id="@+id/textViewName"
-        android:layout_width="wrap_content"
+    >
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black"/>
+        android:layout_margin="5dp"
+        >
 
-    <TextView
-        android:id="@+id/textViewSubject"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textColor="@android:color/black"/>
+        <TextView
+            android:id="@+id/textViewName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:text="@string/app_name"
+            android:textColor="@android:color/black"/>
 
-</LinearLayout>
+        <TextView
+            android:layout_below="@id/textViewName"
+            android:id="@+id/txt_teacher_email_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="Email: "
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:layout_toEndOf="@id/txt_teacher_email_layout"
+            android:layout_below="@id/textViewName"
+            android:id="@+id/textViewEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:textSize="16sp"
+            android:text="test@gmail.com"
+            android:textColor="@android:color/black"/>
+        <TextView
+            android:layout_below="@id/textViewEmail"
+            android:id="@+id/textViewPhoneLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="Phone:"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:layout_below="@id/textViewEmail"
+            android:layout_toEndOf="@id/textViewPhoneLayout"
+            android:id="@+id/txt_teacher_phone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:textSize="16sp"
+            android:text="0772345678"
+            android:textColor="@android:color/black"/>
+        <TextView
+            android:layout_below="@id/textViewPhoneLayout"
+            android:id="@+id/txt_teacher_subject_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="@string/subject_s"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:layout_below="@id/textViewPhoneLayout"
+            android:layout_toEndOf="@id/txt_teacher_subject_layout"
+            android:id="@+id/txt_teacher_subject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:textSize="16sp"
+            android:text="English"
+            android:textColor="@android:color/black"/>
+
+        <ImageView
+            android:id="@+id/image_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_menu"
+            android:layout_alignParentEnd="true"
+            app:tint="@color/black"
+            android:layout_centerVertical="true"
+            android:contentDescription="@string/menu_icon" />
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

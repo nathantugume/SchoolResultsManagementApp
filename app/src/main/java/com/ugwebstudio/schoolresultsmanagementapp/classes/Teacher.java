@@ -1,6 +1,7 @@
 package com.ugwebstudio.schoolresultsmanagementapp.classes;
 
 public class Teacher {
+    private String id;
     private String name;
     private String subject;
 
@@ -11,16 +12,39 @@ public class Teacher {
     private String role= "teacher";
 
     public Teacher() {
+        //empty for use by firebase
     }
 
-    public Teacher(String name, String email, String phone, String subject, String teacherClass, String role) {
-        this.name=name;
-        this.email=email;
-        this.phone=phone;
-        this.subject=subject;
-        this.teacherClass=teacherClass;
+
+
+    //teacher constructor
+
+    public Teacher(String id, String name, String subject, String phone, String teacherClass, String email, String role) {
+        this.id = id;
+        this.name = name;
+        this.subject = subject;
+        this.phone = phone;
+        this.teacherClass = teacherClass;
+        this.email = email;
+        this.role = role;
+    }
+
+    public Teacher(String name, String email, String phone, String subject, String teacherClass, String teacher) {
+        this.name = name;
+        this.subject = subject;
+        this.phone = phone;
+        this.teacherClass = teacherClass;
+        this.email = email;
         this.role = role;
 
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getRole() {

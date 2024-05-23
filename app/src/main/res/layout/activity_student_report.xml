@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     tools:context=".admin.StudentReportActivity">
-
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
-        <!-- NestedScrollView for scrolling content -->
-        <!-- Top App Bar -->
+        android:layout_height="wrap_content">
+
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/topBar"
             android:layout_width="match_parent"
@@ -24,8 +21,6 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="@color/colorPrimary"
                 android:theme="@style/ThemeOverlay.MaterialComponents.Toolbar.Primary"
-                app:menu="@menu/admin_top_menu"
-                app:navigationIcon="@drawable/ic_back"
                 app:title="Reports"
                 app:titleCentered="true"
                 app:titleTextColor="@color/white" />
@@ -37,51 +32,169 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_margin="10dp"
-            android:layout_below="@id/topBar"
-            >
+            android:layout_below="@id/topBar">
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                >
+                android:layout_gravity="center_horizontal">
 
                 <Spinner
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
-                    android:id="@+id/spinner_class"
-                    />
+                    android:id="@+id/spinner_class"/>
 
                 <Spinner
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
-                    android:id="@+id/spinner_term"
-                    />
+                    android:id="@+id/spinner_term"/>
             </LinearLayout>
-
-            <!-- Search EditText -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/textInputLayout_search"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:hint="@string/search_student"
-                app:hintTextColor="@color/colorPrimaryDark"
-                android:focusedByDefault="true"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editText_search"
+                android:orientation="vertical"
+                android:layout_margin="5dp"
+                android:layout_below="@id/topBar"
+                >
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:imeOptions="actionDone"
-                    android:textColor="@android:color/black"
-                    android:textColorHint="@color/colorPrimaryDark"
-                    android:padding="10dp"/>
+                    android:orientation="horizontal">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:text="Student name: "/>
+                    <TextView
+                        android:layout_marginStart="10dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="18sp"
+                        android:id="@+id/student_name"/>
+
+                </LinearLayout>
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <TableLayout
+                        android:id="@+id/table_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:padding="16dp"
+                        android:nestedScrollingEnabled="true"
+                        style="@style/Widget.Material3.TabLayout.Secondary"
+                        app:layout_constraintTop_toBottomOf="@id/topBar">
+
+                        <!-- Table header row -->
+                        <TableRow
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Subject"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textStyle="bold"
+                                android:padding="8dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Beg"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textStyle="bold"
+                                android:padding="8dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Mid"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textStyle="bold"
+                                android:padding="8dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="End"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textStyle="bold"
+                                android:padding="8dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Grade"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textStyle="bold"
+                                android:padding="8dp" />
+
+
+                        </TableRow>
+
+                        <!-- Table rows will be dynamically added here -->
+                    </TableLayout>
+
+
+                </ScrollView>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="30dp"
+                    android:layout_marginEnd="30dp"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Aggregates :"
+                        android:textStyle="bold"
+                        android:textSize="18sp"
+                        />
+                    <TextView
+                        android:id="@+id/aggregates"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:text="loading..."
+                        android:textStyle="bold"
+                        android:textSize="18sp"
+                        />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="30dp"
+                    android:layout_marginEnd="30dp"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Division :"
+                        android:textStyle="bold"
+                        android:textSize="18sp"
+                        />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+
+                        android:id="@+id/report_division"
+                        android:text="loading..."
+                        android:textStyle="bold"
+                        android:textSize="18sp"
+                        />
+                </LinearLayout>
+
+            </LinearLayout>
+
             <com.facebook.shimmer.ShimmerFrameLayout
                 android:id="@+id/shimmer_view_container"
                 android:layout_width="match_parent"
@@ -89,16 +202,9 @@
                 app:shimmer_auto_start="true"
                 app:shimmer_duration="1000"/>
 
-            <!-- RecyclerView for displaying students -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view_students"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp" />
+
         </LinearLayout>
 
-
-        <!-- Bottom Navigation View -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
             style="@style/ThemeOverlay.Material3.NavigationView"
             android:id="@+id/bottom_app_bar"
@@ -110,9 +216,8 @@
             app:itemTextColor="@color/white"
             android:layout_gravity="bottom"
             app:labelVisibilityMode="labeled"
-            app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
             app:menu="@menu/admin_bottom_menu"
-            android:layout_alignParentBottom="true" />
+            android:layout_alignParentBottom="true"/>
     </RelativeLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

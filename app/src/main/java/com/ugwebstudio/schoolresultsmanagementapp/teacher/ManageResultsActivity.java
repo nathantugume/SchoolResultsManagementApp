@@ -1,6 +1,8 @@
 package com.ugwebstudio.schoolresultsmanagementapp.teacher;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -13,14 +15,21 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.ugwebstudio.schoolresultsmanagementapp.R;
+import com.ugwebstudio.schoolresultsmanagementapp.admin.MainActivity;
+import com.ugwebstudio.schoolresultsmanagementapp.admin.ManageClassesActivity;
+import com.ugwebstudio.schoolresultsmanagementapp.teacher.ManageResultsActivity;
+import com.ugwebstudio.schoolresultsmanagementapp.admin.StudentReportActivity;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentClass;
 
 import java.util.ArrayList;
@@ -60,6 +69,31 @@ public class ManageResultsActivity extends AppCompatActivity {
         spinnerTerms = findViewById(R.id.spinnerTerm);
         subjectAutoComplete = findViewById(R.id.autoCompleteTextViewSubject);
         marksEditText = findViewById(R.id.editTextMarks);
+
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+
+        toolbar.setNavigationOnClickListener(view -> onBackPressed());
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_app_bar);
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.bottom_home){
+                startActivity(new Intent(ManageResultsActivity.this, MainActivity.class));
+            }
+            if (item.getItemId() == R.id.bottom_report){
+                startActivity(new Intent(ManageResultsActivity.this, StudentReportActivity.class));
+
+            }
+            if (item.getItemId() == R.id.bottom_classes){
+                startActivity(new Intent(ManageResultsActivity.this, ManageClassesActivity.class));
+
+            }
+            if (item.getItemId() == R.id.bottom_results){
+                startActivity(new Intent(ManageResultsActivity.this, ManageResultsActivity.class));
+
+            }
+
+            return false;
+        });
 
 // Find the ChipGroup in your layout
         chipGroupResultType = findViewById(R.id.chipGroupResultType);
@@ -106,12 +140,9 @@ public class ManageResultsActivity extends AppCompatActivity {
         loadTerms();
 
         // Add click listener to the Add Result button
-        buttonAddResult.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Add your logic to add the result to Firestore
-                addResultToFirestore();
-            }
+        buttonAddResult.setOnClickListener(v -> {
+            // Add your logic to add the result to Firestore
+            addResultToFirestore();
         });
     }
 
@@ -120,33 +151,32 @@ public class ManageResultsActivity extends AppCompatActivity {
     private void loadClassesFromFirestore() {
         db.collection("classes")
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            List<String> classNames = new ArrayList<>();
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                 studentClass = document.toObject(StudentClass.class);
-                                classNames.add(document.getString("className"));
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<String> classNames = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                             studentClass = document.toObject(StudentClass.class);
+                            classNames.add(document.getString("className"));
 
-                            }
-                            // Populate spinner with class names
-                            ArrayAdapter<String> classAdapter = new ArrayAdapter<>(ManageResultsActivity.this, android.R.layout.simple_spinner_item, classNames);
-                            classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            spinnerClass.setAdapter(classAdapter);
-
-
-                        } else {
-                            Toast.makeText(ManageResultsActivity.this, "Failed to load classes", Toast.LENGTH_SHORT).show();
                         }
+                        // Populate spinner with class names
+                        ArrayAdapter<String> classAdapter = new ArrayAdapter<>(ManageResultsActivity.this, android.R.layout.simple_spinner_item, classNames);
+                        classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        spinnerClass.setAdapter(classAdapter);
+
+
+                    } else {
+                        Toast.makeText(ManageResultsActivity.this, "Failed to load classes", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
     // Define the method to load students from Firestore and populate spinner based on selected class
+// Define the method to load students from Firestore and populate spinner based on selected class
     private void loadStudentsFromFirestore(String selectedClass) {
+        Toast.makeText(this, selectedClass, Toast.LENGTH_SHORT).show();
         db.collection("students")
-                .whereEqualTo("studentClass", selectedClass)
+                .whereEqualTo("studentClass",  selectedClass)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -154,10 +184,14 @@ public class ManageResultsActivity extends AppCompatActivity {
                         studentIds = new ArrayList<>();
 
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            studentNames.add(document.getString("name"));
-                            studentIds.add(document.getId());
+                            String studentName = document.getString("name");
+                            String studentId = document.getId();
 
+                            Toast.makeText(this,studentId,Toast.LENGTH_LONG).show();
+                            studentNames.add(studentName);
+                            studentIds.add(studentId);
                         }
+
                         // Populate spinner with student names
                         ArrayAdapter<String> studentAdapter = new ArrayAdapter<>(ManageResultsActivity.this, android.R.layout.simple_spinner_item, studentNames);
                         studentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -227,6 +261,7 @@ public class ManageResultsActivity extends AppCompatActivity {
         db.collection("results")
                 .add(resultData)
                 .addOnSuccessListener(documentReference -> {
+                    Log.d("studentId",studentId);
                     Toast.makeText(ManageResultsActivity.this, "Result added successfully", Toast.LENGTH_SHORT).show();
                     // Clear input fields or perform any other necessary actions
                 })

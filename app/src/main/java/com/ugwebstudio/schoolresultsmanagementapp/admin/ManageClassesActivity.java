@@ -1,20 +1,27 @@
 package com.ugwebstudio.schoolresultsmanagementapp.admin;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationBarView;
+import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.CollectionReference;
@@ -23,6 +30,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.ugwebstudio.schoolresultsmanagementapp.Adapters.StudentClassAdapter;
 import com.ugwebstudio.schoolresultsmanagementapp.R;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentClass;
+import com.ugwebstudio.schoolresultsmanagementapp.teacher.ManageResultsActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +49,29 @@ public class ManageClassesActivity extends AppCompatActivity {
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(view -> onBackPressed());
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_app_bar);
+        bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                if (item.getItemId() == R.id.bottom_home){
+                    startActivity(new Intent(ManageClassesActivity.this, MainActivity.class));
+                }
+                if (item.getItemId() == R.id.bottom_report){
+                    startActivity(new Intent(ManageClassesActivity.this, StudentReportActivity.class));
 
+                }
+                if (item.getItemId() == R.id.bottom_classes){
+                    startActivity(new Intent(ManageClassesActivity.this, ManageClassesActivity.class));
+
+                }
+                if (item.getItemId() == R.id.bottom_results){
+                    startActivity(new Intent(ManageClassesActivity.this, ManageResultsActivity.class));
+
+                }
+
+                return false;
+            }
+        });
 
         db = FirebaseFirestore.getInstance();
 

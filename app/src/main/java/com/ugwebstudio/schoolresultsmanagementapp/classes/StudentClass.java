@@ -2,6 +2,7 @@ package com.ugwebstudio.schoolresultsmanagementapp.classes;
 
 public class StudentClass {
 
+    public String email;
     private String className;
     private String Streams;
     private String level;
@@ -15,6 +16,22 @@ public class StudentClass {
         Streams = streams;
         this.level = level;
         Subjects = subjects;
+    }
+
+    public StudentClass(String email, String className, String streams, String level, String subjects) {
+        this.email = email;
+        this.className = className;
+        Streams = streams;
+        this.level = level;
+        Subjects = subjects;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getClassName() {

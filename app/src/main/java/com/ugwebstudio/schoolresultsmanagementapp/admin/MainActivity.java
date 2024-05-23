@@ -2,6 +2,7 @@ package com.ugwebstudio.schoolresultsmanagementapp.admin;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -11,11 +12,17 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 import com.ugwebstudio.schoolresultsmanagementapp.R;
+import com.ugwebstudio.schoolresultsmanagementapp.SelectUserActivity;
 import com.ugwebstudio.schoolresultsmanagementapp.teacher.ManageResultsActivity;
 
 public class MainActivity extends AppCompatActivity {
+
+    private FirebaseAuth mAuth = FirebaseAuth.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,9 +32,38 @@ public class MainActivity extends AppCompatActivity {
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.navigationView);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_app_bar);
+
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.bottom_home){
+                startActivity(new Intent(MainActivity.this, MainActivity.class));
+            }
+            if (item.getItemId() == R.id.bottom_report){
+                startActivity(new Intent(MainActivity.this, StudentReportActivity.class));
+
+            }
+            if (item.getItemId() == R.id.bottom_classes){
+                startActivity(new Intent(MainActivity.this, ManageClassesActivity.class));
+
+            }
+            if (item.getItemId() == R.id.bottom_results){
+                startActivity(new Intent(MainActivity.this, ManageResultsActivity.class));
+
+            }
+
+            return false;
+        });
 
 
         toolbar.setNavigationOnClickListener(view -> drawerLayout.open());
+
+        toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.sign_out_menu){
+                mAuth.signOut();
+                startActivity(new Intent(MainActivity.this, SelectUserActivity.class));
+            }
+            return true;
+        });
 
         CardView manage_results = findViewById(R.id.manage_results_card);
         CardView manage_teachers = findViewById(R.id.manage_teacher_card);

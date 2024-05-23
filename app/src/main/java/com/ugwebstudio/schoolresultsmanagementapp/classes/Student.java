@@ -2,12 +2,12 @@ package com.ugwebstudio.schoolresultsmanagementapp.classes;
 
 public class Student {
     private String name;
-
+   private String id;
 
     private String phone;
-    private String StudentClass;
-    private String StudentParent;
-    private String StudentDOB;
+    private String studentClass;
+    private String studentParent;
+    private String studentDOB;
     private String email;
 
     private String address;
@@ -20,12 +20,13 @@ public class Student {
     }
 
 
-    public Student(String name, String phone, String studentClass, String studentParent, String studentDOB, String email, String address, String parentPhone, String academicYear) {
+    public Student(String name, String id, String phone, String studentClass, String studentParent, String studentDOB, String email, String address, String parentPhone, String academicYear) {
         this.name = name;
+        this.id = id;
         this.phone = phone;
-        StudentClass = studentClass;
-        StudentParent = studentParent;
-        StudentDOB = studentDOB;
+        this.studentClass = studentClass;
+        this.studentParent = studentParent;
+        this.studentDOB = studentDOB;
         this.email = email;
         this.address = address;
         this.parentPhone = parentPhone;
@@ -73,28 +74,29 @@ public class Student {
         this.phone = phone;
     }
 
+
     public String getStudentClass() {
-        return StudentClass;
+        return studentClass;
     }
 
     public void setStudentClass(String studentClass) {
-        StudentClass = studentClass;
+        this.studentClass = studentClass;
     }
 
     public String getStudentParent() {
-        return StudentParent;
+        return studentParent;
     }
 
     public void setStudentParent(String studentParent) {
-        StudentParent = studentParent;
+        this.studentParent = studentParent;
     }
 
     public String getStudentDOB() {
-        return StudentDOB;
+        return studentDOB;
     }
 
     public void setStudentDOB(String studentDOB) {
-        StudentDOB = studentDOB;
+        this.studentDOB = studentDOB;
     }
 
     public String getEmail() {
@@ -103,6 +105,14 @@ public class Student {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }
 

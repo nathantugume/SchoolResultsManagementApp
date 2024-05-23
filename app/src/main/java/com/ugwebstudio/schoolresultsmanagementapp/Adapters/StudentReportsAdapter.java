@@ -11,7 +11,6 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ugwebstudio.schoolresultsmanagementapp.R;
-import com.ugwebstudio.schoolresultsmanagementapp.admin.StudentResultsActivity;
 import com.ugwebstudio.schoolresultsmanagementapp.admin.ViewReportActivity;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentResults;
 

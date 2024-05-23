@@ -11,18 +11,24 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         >
-
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/student"
+            android:text="@string/student"
+            android:layout_marginEnd="5dp"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/teacher"
-            android:text="Teacher"/>
+            android:text="@string/teacher"
+            android:layout_marginEnd="5dp"/>
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/admin"
-            android:text="Admin"/>
+            android:text="@string/admin"/>
     </LinearLayout>
 
 

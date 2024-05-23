@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/settings_menu"
+        android:icon="@drawable/ic_settings"
+        android:title="Settings"
+        />
+
+    <item
+        android:id="@+id/sign_out"
+        android:icon="@drawable/log_out"
+        android:title="Log out"/>
+
+
+</menu>

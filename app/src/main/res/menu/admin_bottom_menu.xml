@@ -3,17 +3,17 @@
     <item
         android:id="@+id/bottom_home"
         android:icon="@drawable/ic_home"
-        android:title="Home"
+        android:title="@string/home"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/bottom_report"
         android:icon="@drawable/ic_reports"
-        android:title="Reports"
+        android:title="@string/reports"
         app:showAsAction="always" />
     <item
-        android:id="@+id/bottom_notification"
-        android:icon="@drawable/ic_notifications"
-        android:title="Notifications"
+        android:id="@+id/bottom_results"
+        android:icon="@drawable/baseline_dynamic_feed_24"
+        android:title="@string/results_txt"
         app:showAsAction="always" />
     <item
         android:id="@+id/bottom_classes"

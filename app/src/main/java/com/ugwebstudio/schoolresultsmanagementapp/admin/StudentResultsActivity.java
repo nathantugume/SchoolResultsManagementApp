@@ -15,11 +15,14 @@ import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.ugwebstudio.schoolresultsmanagementapp.R;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentResults;
+import com.ugwebstudio.schoolresultsmanagementapp.teacher.ManageResultsActivity;
 
 public class StudentResultsActivity extends AppCompatActivity {
 
@@ -31,6 +34,31 @@ public class StudentResultsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student_results);
+
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+
+        toolbar.setNavigationOnClickListener(view -> onBackPressed());
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_app_bar);
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.bottom_home){
+                startActivity(new Intent(StudentResultsActivity.this, MainActivity.class));
+            }
+            if (item.getItemId() == R.id.bottom_report){
+                startActivity(new Intent(StudentResultsActivity.this, StudentReportActivity.class));
+
+            }
+            if (item.getItemId() == R.id.bottom_classes){
+                startActivity(new Intent(StudentResultsActivity.this, ManageClassesActivity.class));
+
+            }
+            if (item.getItemId() == R.id.bottom_results){
+                startActivity(new Intent(StudentResultsActivity.this, ManageResultsActivity.class));
+
+            }
+
+            return false;
+        });
 
         // Initialize Firebase Firestore
         db = FirebaseFirestore.getInstance();

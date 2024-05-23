@@ -1,5 +1,6 @@
 package com.ugwebstudio.schoolresultsmanagementapp.admin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -17,6 +18,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -25,6 +28,7 @@ import com.ugwebstudio.schoolresultsmanagementapp.Adapters.StudentResultAdapter;
 import com.ugwebstudio.schoolresultsmanagementapp.R;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentClass;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentResults;
+import com.ugwebstudio.schoolresultsmanagementapp.teacher.ManageResultsActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +57,30 @@ public class ViewResultsActivity extends AppCompatActivity {
 
         loadClassesFromFirestore();
         setupRecyclerView();
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
 
+        toolbar.setNavigationOnClickListener(view -> onBackPressed());
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_app_bar);
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.bottom_home){
+                startActivity(new Intent(ViewResultsActivity.this, MainActivity.class));
+            }
+            if (item.getItemId() == R.id.bottom_report){
+                startActivity(new Intent(ViewResultsActivity.this, StudentReportActivity.class));
+
+            }
+            if (item.getItemId() == R.id.bottom_classes){
+                startActivity(new Intent(ViewResultsActivity.this, ManageClassesActivity.class));
+
+            }
+            if (item.getItemId() == R.id.bottom_results){
+                startActivity(new Intent(ViewResultsActivity.this, ManageResultsActivity.class));
+
+            }
+
+            return false;
+        });
 
         // Listeners for class and term selection
         spinnerClass.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -104,6 +131,7 @@ public class ViewResultsActivity extends AppCompatActivity {
     }
 
     private void loadStudentResultsFromFirestore(String selectedClass, String selectedTerm) {
+        Log.d("selectedClass",selectedClass);
         db.collection("results")
                 .whereEqualTo("class", selectedClass)
                 .whereEqualTo("term", selectedTerm)

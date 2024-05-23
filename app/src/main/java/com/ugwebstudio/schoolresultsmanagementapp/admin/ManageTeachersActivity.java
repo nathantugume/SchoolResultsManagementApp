@@ -9,9 +9,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -22,9 +24,11 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -36,11 +40,12 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.ugwebstudio.schoolresultsmanagementapp.Adapters.TeacherAdapter;
 import com.ugwebstudio.schoolresultsmanagementapp.R;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.Teacher;
+import com.ugwebstudio.schoolresultsmanagementapp.teacher.ManageResultsActivity;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ManageTeachersActivity extends AppCompatActivity {
+public class ManageTeachersActivity extends AppCompatActivity implements TeacherAdapter.OnItemClickListener,TeacherAdapter.OnItemLongClickListener {
     private final String TAG = "ManageTeachersActivity";
     private FirebaseAuth mAuth;
     private TeacherAdapter adapter;
@@ -54,12 +59,29 @@ public class ManageTeachersActivity extends AppCompatActivity {
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
 
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onBackPressed();
+        toolbar.setNavigationOnClickListener(view -> onBackPressed());
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_app_bar);
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.bottom_home){
+                startActivity(new Intent(ManageTeachersActivity.this, MainActivity.class));
             }
+            if (item.getItemId() == R.id.bottom_report){
+                startActivity(new Intent(ManageTeachersActivity.this, StudentReportActivity.class));
+
+            }
+            if (item.getItemId() == R.id.bottom_classes){
+                startActivity(new Intent(ManageTeachersActivity.this, ManageClassesActivity.class));
+
+            }
+            if (item.getItemId() == R.id.bottom_results){
+                startActivity(new Intent(ManageTeachersActivity.this, ManageResultsActivity.class));
+
+            }
+
+            return false;
         });
+
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -76,6 +98,8 @@ public class ManageTeachersActivity extends AppCompatActivity {
         adapter = new TeacherAdapter(teacherList);
         recyclerView.setAdapter(adapter);
 
+        adapter.setOnItemLongClickListener(this);
+        adapter.setOnItemClickListener(this);
         // Retrieve teacher data from Firestore
         retrieveTeacherData();
         // Inside your activity onCreate() method or wherever you set up your views
@@ -98,6 +122,8 @@ public class ManageTeachersActivity extends AppCompatActivity {
                         // Add retrieved documents to the list
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Teacher teacher = document.toObject(Teacher.class);
+                            String id = document.getId();
+                            teacher.setId(id);
                             teacherList.add(teacher);
                         }
 
@@ -144,12 +170,7 @@ public class ManageTeachersActivity extends AppCompatActivity {
             Chip chip = new Chip(chipGroupSubject.getContext());
             chip.setText(selectedSubject);
             chip.setCloseIconVisible(true);
-            chip.setOnCloseIconClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    chipGroupSubject.removeView(chip);
-                }
-            });
+            chip.setOnCloseIconClickListener(v -> chipGroupSubject.removeView(chip));
             chipGroupSubject.addView(chip);
             autoCompleteTextViewSubject.setText("");
         });
@@ -301,5 +322,86 @@ public class ManageTeachersActivity extends AppCompatActivity {
             password.append(characters.charAt(index));
         }
         return password.toString();
+    }
+
+    @Override
+    public void onItemClick(Teacher teacher) {
+        showEditTeacherDialog(teacher);
+
+    }
+
+    //edit teacher show dialogue
+
+    private void showEditTeacherDialog(Teacher teacher) {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_teacher, null);
+
+        TextInputEditText editTextName = dialogView.findViewById(R.id.editTextEditName);
+        TextInputEditText editTextEmail = dialogView.findViewById(R.id.editTextEditEmail);
+        TextInputEditText editTextPhone = dialogView.findViewById(R.id.editTextEditPhone);
+        // Populate fields with teacher data
+        editTextName.setText(teacher.getName());
+        editTextEmail.setText(teacher.getEmail());
+        editTextPhone.setText(teacher.getPhone());
+
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setView(dialogView)
+                .setTitle("Edit Teacher")
+                .setPositiveButton("Save", (dialog, which) -> {
+                    // Update teacher information
+                    String name = editTextName.getText().toString().trim();
+                    String email = editTextEmail.getText().toString().trim();
+                    String phone = editTextPhone.getText().toString().trim();
+                    updateTeacher(teacher.getId(), name, email, phone);
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog alertDialog = dialogBuilder.create();
+        alertDialog.show();
+    }
+
+    private void updateTeacher(String id, String name, String email, String phone) {
+        DocumentReference teacherRef = db.collection("teachers").document(id);
+        teacherRef.update("name", name, "email", email, "phone", phone)
+                .addOnSuccessListener(aVoid -> {
+                    // Update local list and notify adapter
+                    for (Teacher teacher : teacherList) {
+                        if (teacher.getId().equals(id)) {
+                            teacher.setName(name);
+                            teacher.setEmail(email);
+                            teacher.setPhone(phone);
+                            break;
+                        }
+                    }
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(this, "Teacher updated", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error updating teacher", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    @Override
+    public void onItemLongClick(Teacher teacher) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Teacher "+ teacher.getName())
+                .setMessage("Do you want to delete this teacher?")
+                .setPositiveButton(android.R.string.yes, (dialog, which) -> deleteTeacher(teacher))
+                .setNegativeButton(android.R.string.no, null)
+                .show();
+    }
+
+    private void deleteTeacher(Teacher teacher) {
+        DocumentReference teacherRef = db.collection("teachers").document(teacher.getId());
+        teacherRef.delete()
+                .addOnSuccessListener(aVoid -> {
+                    // Remove from local list and notify adapter
+                    teacherList.remove(teacher);
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(this, "Teacher deleted", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error deleting teacher", Toast.LENGTH_SHORT).show();
+                });
     }
 }
