@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -36,7 +37,7 @@ public class ViewReportActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private TextView studentNameTxt;
     private List<Integer> aggregatesList = new ArrayList<>();
-
+    private ProgressDialog progressDialog;
     private static final Map<String, Integer> gradePoints = new HashMap<>();
     private float average;
 
@@ -54,6 +55,10 @@ public class ViewReportActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_report);
 
+        progressDialog = new ProgressDialog(ViewReportActivity.this);
+        progressDialog.setMessage("Loading  results...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
         db = FirebaseFirestore.getInstance();
 
         // Get table layout reference
@@ -97,7 +102,7 @@ public class ViewReportActivity extends AppCompatActivity {
     }
 
     private void fetchStudentResults(String selectedClass, String selectedTerm, String studentId) {
-
+        progressDialog.show();
         // Determine if this is for the third term
         if ("Third Term".equalsIgnoreCase(selectedTerm)) {
             // Fetch and calculate third-term results
@@ -111,6 +116,7 @@ public class ViewReportActivity extends AppCompatActivity {
     }
 
     private void fetchAndDisplayRegularResults(String selectedClass, String selectedTerm, String studentId) {
+        progressDialog.show();
         // Fetch and display regular term results
         db.collection("results")
                 .whereEqualTo("class", selectedClass)
@@ -119,6 +125,7 @@ public class ViewReportActivity extends AppCompatActivity {
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        progressDialog.dismiss();
                         Map<String, Map<String, Integer>> subjectResults = new HashMap<>();
                         task.getResult().forEach(document -> {
                             StudentResults studentResults = document.toObject(StudentResults.class);
@@ -143,6 +150,8 @@ public class ViewReportActivity extends AppCompatActivity {
     }
 
     private void fetchAndCalculateThirdTerm(String selectedClass, String studentId) {
+        progressDialog.setMessage("Loading results...");
+        progressDialog.show();
         // Fetch all terms for the selected student and class
         db.collection("results")
                 .whereEqualTo("class", selectedClass)
@@ -150,6 +159,7 @@ public class ViewReportActivity extends AppCompatActivity {
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        progressDialog.dismiss();
                         Map<String, List<Integer>> subjectMarks = new HashMap<>();
                         task.getResult().forEach(document -> {
                             String term = document.getString("term");
@@ -174,6 +184,7 @@ public class ViewReportActivity extends AppCompatActivity {
 
     private String calculateGradeFromAverage(double average) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        progressDialog.setMessage("Loading results...");
 
         // Assuming 'gradingScales' is your Firestore collection containing grading scale documents
         db.collection("gradingScales")
@@ -181,10 +192,12 @@ public class ViewReportActivity extends AppCompatActivity {
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        progressDialog.dismiss();
                         String grade = "Not Graded";
 
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             if ("o_level".equalsIgnoreCase(document.getString("level"))) {
+                                progressDialog.dismiss();
                                 float minMark = document.getLong("from");
                                 float maxMark = document.getLong("to");
                                 if (average >= minMark && average <= maxMark) {

@@ -3,7 +3,6 @@ package com.ugwebstudio.schoolresultsmanagementapp.classes;
 public class Student {
     private String name;
    private String id;
-
     private String phone;
     private String studentClass;
     private String studentParent;
@@ -14,11 +13,24 @@ public class Student {
     private String parentPhone;
 
     private String academicYear;
-
+    private  String imageUrl;
 
     public Student() {
     }
 
+    public Student(String name, String id, String phone, String studentClass, String studentParent, String studentDOB, String email, String address, String parentPhone, String academicYear, String imageUrl) {
+        this.name = name;
+        this.id = id;
+        this.phone = phone;
+        this.studentClass = studentClass;
+        this.studentParent = studentParent;
+        this.studentDOB = studentDOB;
+        this.email = email;
+        this.address = address;
+        this.parentPhone = parentPhone;
+        this.academicYear = academicYear;
+        this.imageUrl = imageUrl;
+    }
 
     public Student(String name, String id, String phone, String studentClass, String studentParent, String studentDOB, String email, String address, String parentPhone, String academicYear) {
         this.name = name;
@@ -39,6 +51,14 @@ public class Student {
 
     public String getAcademicYear() {
         return academicYear;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public void setAcademicYear(String academicYear) {

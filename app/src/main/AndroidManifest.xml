@@ -11,18 +11,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SchoolResultsManagementApp"
-        tools:targetApi="31">
+        tools:targetApi="tiramisu"
+        android:enableOnBackInvokedCallback="true"
+        >
         <activity
             android:name=".Student.StudentDashboardActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Student.StudentLoginActivity"
-            android:exported="false" />
-        <activity
-            android:name=".admin.AdminLoginActivity"
-            android:exported="false" />
-        <activity
-            android:name=".teacher.TeacherLoginActivity"
             android:exported="false" />
         <activity
             android:name=".admin.FinalReportActivity"

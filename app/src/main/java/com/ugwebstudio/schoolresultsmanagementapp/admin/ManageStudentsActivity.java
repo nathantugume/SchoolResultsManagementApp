@@ -2,12 +2,19 @@ package com.ugwebstudio.schoolresultsmanagementapp.admin;
 
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,12 +36,15 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.ugwebstudio.schoolresultsmanagementapp.Adapters.StudentAdapter;
 import com.ugwebstudio.schoolresultsmanagementapp.R;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.Student;
 import com.ugwebstudio.schoolresultsmanagementapp.teacher.ManageResultsActivity;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class ManageStudentsActivity extends AppCompatActivity implements StudentAdapter.OnItemClickListener,StudentAdapter.OnItemLongClickListener {
@@ -45,18 +55,23 @@ public class ManageStudentsActivity extends AppCompatActivity implements Student
     private FirebaseFirestore db;
     private String selectedClass;
 
+    private static final int PICK_IMAGE_REQUEST = 1;
+    private ImageView imageViewStudent;
+    private Uri imageUri;
+    private FirebaseStorage storage;
+    
+    private TextInputEditText searchEditText;
+    private List<Student> fullStudentList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_students);
 
+        storage = FirebaseStorage.getInstance();
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
 
         toolbar.setNavigationOnClickListener(view -> onBackPressed());
-
-
-
-
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_app_bar);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             if (item.getItemId() == R.id.bottom_home){
@@ -78,10 +93,29 @@ public class ManageStudentsActivity extends AppCompatActivity implements Student
             return false;
         });
 
+        // Get the search EditText
+        searchEditText = findViewById(R.id.searchEditText);
+        // Assuming you have an EditText named searchEditText
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                String query = charSequence.toString().toLowerCase().trim();
+                adapter.filterList(query);
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
+
+
+
 
         mAuth = FirebaseAuth.getInstance();
-
-
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
@@ -93,6 +127,7 @@ public class ManageStudentsActivity extends AppCompatActivity implements Student
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         studentList = new ArrayList<>();
+        fullStudentList = new ArrayList<>();
         adapter = new StudentAdapter(studentList);
         recyclerView.setAdapter(adapter);
 
@@ -105,6 +140,21 @@ public class ManageStudentsActivity extends AppCompatActivity implements Student
         FloatingActionButton fabAddStudents = findViewById(R.id.fabAddStudent);
         fabAddStudents.setOnClickListener(v -> showAddStudentsDialog());
 
+    }
+
+    private void openFileChooser() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            imageUri = data.getData();
+            imageViewStudent.setImageURI(imageUri);
+        }
     }
 
     private void showEditStudentDialog(Student student) {
@@ -213,7 +263,9 @@ public class ManageStudentsActivity extends AppCompatActivity implements Student
                     student.setId(id);
                     Log.d(TAG, "Student ID: " + id);
                     studentList.add(student);
+                    fullStudentList.add(student);
                 }
+                adapter.setInitialList(studentList);
                 adapter.notifyDataSetChanged();
 
             } else {
@@ -225,8 +277,13 @@ public class ManageStudentsActivity extends AppCompatActivity implements Student
     private void showAddStudentsDialog() {
         // Inflate the dialog layout
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_student, null);
-
+         imageViewStudent = dialogView.findViewById(R.id.imageViewStudent);
+         Button buttonSelectImage = dialogView.findViewById(R.id.buttonSelectImage);
         // Get Material TextInputLayouts and TextInputEditTexts
+
+        //fetch image
+        buttonSelectImage.setOnClickListener(v -> openFileChooser());
+
         TextInputEditText editTextName = dialogView.findViewById(R.id.editTextName);
         TextInputEditText editTextEmail = dialogView.findViewById(R.id.editTextEmail);
         TextInputEditText editTextPhone = dialogView.findViewById(R.id.editTextPhone);
@@ -235,6 +292,25 @@ public class ManageStudentsActivity extends AppCompatActivity implements Student
         TextInputEditText editTextAddress = dialogView.findViewById(R.id.editTextAddress);
         TextInputEditText editTextDob = dialogView.findViewById(R.id.editTextDob);
         TextInputEditText editTextAcademicYear = dialogView.findViewById(R.id.editTextAcademicYear);
+
+        //set dob
+        editTextDob.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                // Get current date to set as default in the picker
+                final Calendar calendar = Calendar.getInstance();
+                int year = calendar.get(Calendar.YEAR);
+                int month = calendar.get(Calendar.MONTH);
+                int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+                // Create and show DatePickerDialog
+                DatePickerDialog datePickerDialog = new DatePickerDialog(ManageStudentsActivity.this, (view, year1, monthOfYear, dayOfMonth) -> {
+                    // Set selected date in the editTextDob
+                    String selectedDate = String.format("%02d/%02d/%04d", dayOfMonth, monthOfYear + 1, year1);
+                    editTextDob.setText(selectedDate);
+                }, year, month, day);
+                datePickerDialog.show();
+            }
+        });
 
 
         // Get Material AutoCompleteTextViews for subjects and classes
@@ -309,49 +385,112 @@ public class ManageStudentsActivity extends AppCompatActivity implements Student
         // Access Firestore database instance
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Create user account
-        mAuth.createUserWithEmailAndPassword(email, generateRandomPassword())
-                .addOnCompleteListener(authTask -> {
-                    if (authTask.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        if (user != null) {
-                            String userId = user.getUid();
-                            // Create a new Students object with the provided information
-                            Student student = new Student(name,userId,phone,studentClass,studentParent,studentDOB,email,address,parentPhone,academicYear);
-                            // Access the "students" collection in Firestore
-                            CollectionReference studentsRef = db.collection("students");
+        if (imageUri != null) {
+            StorageReference storageReference = storage.getReference().child("student_images/" + System.currentTimeMillis() + ".jpg");
+            storageReference.putFile(imageUri)
+                    .addOnSuccessListener(taskSnapshot -> storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                        String imageUrl = uri.toString();
+                        // Create user account
+                        mAuth.createUserWithEmailAndPassword(email, generateRandomPassword())
+                                .addOnCompleteListener(authTask -> {
+                                    if (authTask.isSuccessful()) {
+                                        FirebaseUser user = mAuth.getCurrentUser();
+                                        if (user != null) {
+                                            String userId = user.getUid();
+                                            // Create a new Students object with the provided information
+                                            Student student = new Student(name,userId,phone,studentClass,studentParent,studentDOB,email,address,parentPhone,academicYear,imageUrl);
+                                            // Access the "students" collection in Firestore
+                                            CollectionReference studentsRef = db.collection("students");
 
-                            // Add the student to Firestore with the user ID as the document ID
-                            studentsRef.document(userId)
-                                    .set(student)
-                                    .addOnSuccessListener(aVoid -> {
-                                        // Document successfully written
-                                        Log.d(TAG, "Student added with ID: " + userId);
-                                        // Optionally, show a success message to the user
-                                        Toast.makeText(ManageStudentsActivity.this, "Student added successfully", Toast.LENGTH_SHORT).show();
-                                        // Add student to the list
-                                        studentList.add(student);
-                                        adapter.notifyDataSetChanged();
-                                        // Send password reset email to the student
-                                        sendPasswordResetEmail(email);
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        // Handle any errors that may occur
-                                        Log.w(TAG, "Error adding student", e);
+                                            // Add the student to Firestore with the user ID as the document ID
+                                            studentsRef.document(userId)
+                                                    .set(student)
+                                                    .addOnSuccessListener(aVoid -> {
+                                                        progressDialog.dismiss();
+                                                        // Document successfully written
+                                                        Log.d(TAG, "Student added with ID: " + userId);
+                                                        // Optionally, show a success message to the user
+                                                        Toast.makeText(ManageStudentsActivity.this, "Student added successfully", Toast.LENGTH_SHORT).show();
+                                                        // Add student to the list
+                                                        studentList.add(student);
+                                                        adapter.notifyDataSetChanged();
+                                                        // Send password reset email to the student
+                                                        sendPasswordResetEmail(email);
+                                                    })
+                                                    .addOnFailureListener(e -> {
+                                                        progressDialog.dismiss();
+                                                        // Handle any errors that may occur
+                                                        Log.w(TAG, "Error adding student", e);
+                                                        // Optionally, show an error message to the user
+                                                        Toast.makeText(ManageStudentsActivity.this, "Failed to add student", Toast.LENGTH_SHORT).show();
+                                                    });
+                                        }
+                                    } else {
+                                        // Account creation failed
+                                        Log.w(TAG, "Failed to create account for " + email, authTask.getException());
                                         // Optionally, show an error message to the user
-                                        Toast.makeText(ManageStudentsActivity.this, "Failed to add student", Toast.LENGTH_SHORT).show();
-                                    });
-                        }
-                    } else {
-                        // Account creation failed
-                        Log.w(TAG, "Failed to create account for " + email, authTask.getException());
-                        // Optionally, show an error message to the user
-                        Toast.makeText(ManageStudentsActivity.this, "Failed to create account for " + email, Toast.LENGTH_SHORT).show();
-                    }
+                                        Toast.makeText(ManageStudentsActivity.this, "Failed to create account for " + email, Toast.LENGTH_SHORT).show();
+                                    }
 
-                    // Dismiss loading dialog
+                                    // Dismiss loading dialog
+                                    progressDialog.dismiss();
+                                });
+
+
+
+                    }))
+                    .addOnFailureListener(e -> Toast.makeText(ManageStudentsActivity.this, "Failed to upload image", Toast.LENGTH_SHORT).show());
                     progressDialog.dismiss();
-                });
+        } else {
+            // If no image selected, proceed with other student data
+            // Create user account
+            mAuth.createUserWithEmailAndPassword(email, generateRandomPassword())
+                    .addOnCompleteListener(authTask -> {
+                        progressDialog.dismiss();
+                        if (authTask.isSuccessful()) {
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            if (user != null) {
+                                String userId = user.getUid();
+                                // Create a new Students object with the provided information
+                                Student student = new Student(name,userId,phone,studentClass,studentParent,studentDOB,email,address,parentPhone,academicYear);
+                                // Access the "students" collection in Firestore
+                                CollectionReference studentsRef = db.collection("students");
+
+                                // Add the student to Firestore with the user ID as the document ID
+                                studentsRef.document(userId)
+                                        .set(student)
+                                        .addOnSuccessListener(aVoid -> {
+                                            // Document successfully written
+                                            Log.d(TAG, "Student added with ID: " + userId);
+                                            // Optionally, show a success message to the user
+                                            Toast.makeText(ManageStudentsActivity.this, "Student added successfully", Toast.LENGTH_SHORT).show();
+                                            // Add student to the list
+                                            studentList.add(student);
+                                            adapter.notifyDataSetChanged();
+                                            // Send password reset email to the student
+                                            sendPasswordResetEmail(email);
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            progressDialog.dismiss();
+                                            // Handle any errors that may occur
+                                            Log.w(TAG, "Error adding student", e);
+                                            // Optionally, show an error message to the user
+                                            Toast.makeText(ManageStudentsActivity.this, "Failed to add student", Toast.LENGTH_SHORT).show();
+                                        });
+                            }
+                        } else {
+                            // Account creation failed
+                            Log.w(TAG, "Failed to create account for " + email, authTask.getException());
+                            // Optionally, show an error message to the user
+                            Toast.makeText(ManageStudentsActivity.this, "Failed to create account for " + email, Toast.LENGTH_SHORT).show();
+                        }
+
+                        // Dismiss loading dialog
+                        progressDialog.dismiss();
+                    });
+        }
+
+
     }
 
 
@@ -413,9 +552,11 @@ public class ManageStudentsActivity extends AppCompatActivity implements Student
         db.collection("students").document(student.getId())
                 .delete()
                 .addOnSuccessListener(aVoid -> {
+                    progressDialog.dismiss();
                     studentList.remove(student);
                     adapter.notifyDataSetChanged();
                     Toast.makeText(this, "Student deleted", Toast.LENGTH_SHORT).show();
+
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Error deleting student", Toast.LENGTH_SHORT).show());
     }

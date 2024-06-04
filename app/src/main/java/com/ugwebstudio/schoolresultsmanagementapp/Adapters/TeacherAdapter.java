@@ -88,15 +88,12 @@ public class TeacherAdapter extends RecyclerView.Adapter<TeacherAdapter.ViewHold
             });
 
             //long press to delete
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    if (longClickListener != null){
-                        longClickListener.onItemLongClick(teacher);
-                        return true;
-                    }
-                    return false;
+            itemView.setOnLongClickListener(view -> {
+                if (longClickListener != null){
+                    longClickListener.onItemLongClick(teacher);
+                    return true;
                 }
+                return false;
             });
         }
     }

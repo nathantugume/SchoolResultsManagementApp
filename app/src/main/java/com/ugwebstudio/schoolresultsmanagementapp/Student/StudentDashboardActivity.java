@@ -1,14 +1,25 @@
 package com.ugwebstudio.schoolresultsmanagementapp.Student;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.pdf.PdfDocument;
 import android.os.Bundle;
+import android.os.CancellationSignal;
+import android.os.ParcelFileDescriptor;
+import android.print.PageRange;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintDocumentInfo;
+import android.print.PrintManager;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -17,23 +28,31 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.squareup.picasso.Picasso;
 import com.ugwebstudio.schoolresultsmanagementapp.R;
+import com.ugwebstudio.schoolresultsmanagementapp.SelectUserActivity;
 import com.ugwebstudio.schoolresultsmanagementapp.admin.StudentReportActivity;
 import com.ugwebstudio.schoolresultsmanagementapp.admin.ViewReportActivity;
+import com.ugwebstudio.schoolresultsmanagementapp.classes.Student;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentClass;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentResults;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,19 +63,22 @@ public class StudentDashboardActivity extends AppCompatActivity {
     private Spinner spinnerClass, spinnerTerms;
     private FirebaseFirestore db;
     private TableLayout tableLayout;
-
     private String studentId;
     private ProgressDialog progressDialog;
-
     private String selectedClass;
     private String selectedTerm;
     private TextView studentNameTxt;
     private List<Integer> aggregatesList = new ArrayList<>();
     private FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    private TextView no_results_text_view;
+    private LinearLayout reportContent;
+    private ImageView studentProfileImageView;
+
 
     private static final Map<String, Integer> gradePoints = new HashMap<>();
     private float average;
     private MaterialToolbar toolbar;
+    private ShimmerFrameLayout shimmerFrameLayout;
 
     static {
         gradePoints.put("A", 1);
@@ -72,19 +94,22 @@ public class StudentDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student_dashboard);
 
+        ExtendedFloatingActionButton btnPrint = findViewById(R.id.btnPrint);
+        btnPrint.setOnClickListener(view -> printReport());
+        reportContent = findViewById(R.id.printContent);
+
+        shimmerFrameLayout = findViewById(R.id.shimmer_view_container);
+        no_results_text_view = findViewById(R.id.txt_no_results);
         toolbar = findViewById(R.id.toolbar);
 
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
+        toolbar.setOnMenuItemClickListener(item -> {
 
-                if (item.getItemId() == R.id.sign_out){
-                    mAuth.signOut();
-                    startActivity(new Intent(StudentDashboardActivity.this,StudentLoginActivity.class));
-                    return true;
-                }
-                return false;
+            if (item.getItemId() == R.id.sign_out) {
+                mAuth.signOut();
+                startActivity(new Intent(StudentDashboardActivity.this, SelectUserActivity.class));
+                return true;
             }
+            return false;
         });
         studentId = mAuth.getUid();
 
@@ -99,6 +124,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
 
         progressDialog.show();
 
+        fetchStudentDetails( studentId);
         // Listeners for class and term selection
         spinnerClass.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -120,6 +146,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
                 selectedTerm = parent.getItemAtPosition(position).toString();
                 fetchStudentResults(selectedClass, selectedTerm, studentId);
                 progressDialog.show();
+                shimmerFrameLayout.startShimmer();
                 Log.d("StudentDashboard", "Term selected: " + selectedTerm);
             }
 
@@ -133,6 +160,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
         loadClassesFromFirestore();
     }
 
+
     private void loadTerms() {
         Log.d("StudentDashboard", "Loading terms...");
         String[] termsArray = {"Term One", "Term Two", "Term Three"};
@@ -140,6 +168,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
         termsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerTerms.setAdapter(termsAdapter);
         progressDialog.dismiss();
+
     }
 
     private void fetchStudentResults(String selectedClass, String selectedTerm, String studentId) {
@@ -159,6 +188,8 @@ public class StudentDashboardActivity extends AppCompatActivity {
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        no_results_text_view.setVisibility(View.GONE);
+                        shimmerFrameLayout.stopShimmer();
                         progressDialog.dismiss();
                         Map<String, Map<String, Integer>> subjectResults = new HashMap<>();
                         task.getResult().forEach(document -> {
@@ -179,6 +210,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
                     } else {
                         Snackbar.make(StudentDashboardActivity.this.getCurrentFocus(), "Results not fetched!!", Snackbar.LENGTH_LONG).show();
                         progressDialog.dismiss();
+                        shimmerFrameLayout.stopShimmer();
                         Log.e("StudentDashboard", "Error getting results: ", task.getException());
                     }
                 });
@@ -191,6 +223,9 @@ public class StudentDashboardActivity extends AppCompatActivity {
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        no_results_text_view.setVisibility(View.GONE);
+                        shimmerFrameLayout.stopShimmer();
+                        progressDialog.dismiss();
                         Map<String, List<Integer>> subjectMarks = new HashMap<>();
                         task.getResult().forEach(document -> {
                             String subject = document.getString("subject");
@@ -212,6 +247,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
                         });
                     } else {
                         Snackbar.make(StudentDashboardActivity.this.getCurrentFocus(), "Error fetching third term results!!", Snackbar.LENGTH_LONG).show();
+                        shimmerFrameLayout.stopShimmer();
                         progressDialog.dismiss();
                         Log.e("StudentDashboard", "Error getting third term results: ", task.getException());
                     }
@@ -410,5 +446,101 @@ public class StudentDashboardActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    private void printReport() {
+        PrintManager printManager = (PrintManager) this.getSystemService(Context.PRINT_SERVICE);
+        PrintDocumentAdapter printAdapter = new ViewPrintAdapter(this, reportContent, "Student Report");
+        printManager.print("Student Report", printAdapter, new PrintAttributes.Builder().build());
+    }
+
+    private class ViewPrintAdapter extends PrintDocumentAdapter {
+        private Context context;
+        private View view;
+        private String jobName;
+
+        public ViewPrintAdapter(Context context, View view, String jobName) {
+            this.context = context;
+            this.view = view;
+            this.jobName = jobName;
+        }
+
+        @Override
+        public void onLayout(PrintAttributes oldAttributes, PrintAttributes newAttributes, CancellationSignal cancellationSignal, LayoutResultCallback callback, Bundle extras) {
+            if (cancellationSignal.isCanceled()) {
+                callback.onLayoutCancelled();
+                return;
+            }
+            PrintDocumentInfo info = new PrintDocumentInfo.Builder(jobName)
+                    .setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
+                    .build();
+            callback.onLayoutFinished(info, true);
+        }
+
+        @Override
+        public void onWrite(PageRange[] pages, ParcelFileDescriptor destination, CancellationSignal cancellationSignal, WriteResultCallback callback) {
+            PdfDocument pdfDocument = new PdfDocument();
+            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(view.getWidth(), view.getHeight(), 1).create();
+            PdfDocument.Page page = pdfDocument.startPage(pageInfo);
+
+            if (cancellationSignal.isCanceled()) {
+                callback.onWriteCancelled();
+                pdfDocument.close();
+                pdfDocument = null;
+                return;
+            }
+
+            view.draw(page.getCanvas());
+            pdfDocument.finishPage(page);
+
+            try (FileOutputStream output = new FileOutputStream(destination.getFileDescriptor())) {
+                pdfDocument.writeTo(output);
+            } catch (IOException e) {
+                callback.onWriteFailed(e.toString());
+                return;
+            } finally {
+                pdfDocument.close();
+            }
+
+            callback.onWriteFinished(new PageRange[]{PageRange.ALL_PAGES});
+        }
+    }
+
+    private void fetchStudentDetails(String studentId) {
+        DocumentReference studentRef = db.collection("students").document(studentId);
+        studentRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                if (document.exists()) {
+                    Student student = document.toObject(Student.class);
+                    if (student != null) {
+                        displayStudentDetails(student);
+                    } else {
+                        Toast.makeText(this, "Failed to fetch student details", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(this, "No such student", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(this, "Fetch failed", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void displayStudentDetails(Student student) {
+        studentNameTxt.setText(student.getName());
+        // Populate other UI elements with student details
+
+        ImageView imageView = findViewById(R.id.student_profile);
+
+        // Load the student image using Glide
+        if (student.getImageUrl() != null && !student.getImageUrl().isEmpty()) {
+            Picasso.get()
+                    .load(student.getImageUrl())
+                    .placeholder(R.drawable.ic_student)
+                    .into(imageView);
+
+
+        }
     }
 }
