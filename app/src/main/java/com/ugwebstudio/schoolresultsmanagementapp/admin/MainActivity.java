@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         manage_teachers.setOnClickListener(view -> startActivity(new Intent(MainActivity.this,ManageTeachersActivity.class)));
         manage_students.setOnClickListener(view -> startActivity(new Intent(MainActivity.this,ManageStudentsActivity.class)));
         manage_class.setOnClickListener(view -> startActivity(new Intent(MainActivity.this,ManageClassesActivity.class)));
-        manage_results.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, StudentResultsActivity.class)));
+        manage_results.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, ResultsActivity.class)));
         view_reports_card.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, StudentReportActivity.class)));
 
         navigationView.setNavigationItemSelectedListener(item -> {

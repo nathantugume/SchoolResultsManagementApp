@@ -4,97 +4,152 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Top App Bar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            android:theme="@style/ThemeOverlay.MaterialComponents.Toolbar.Primary"
+            app:menu="@menu/admin_top_menu"
+            app:navigationIcon="@drawable/ic_back"
+            app:title="Add Results"
+            app:titleCentered="true"
+            app:titleTextColor="@color/white" />
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
+        android:layout_height="wrap_content">
+
         <!-- NestedScrollView for scrolling content -->
-        <!-- Top App Bar -->
-        <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/topBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="@color/colorPrimary"
-                android:theme="@style/ThemeOverlay.MaterialComponents.Toolbar.Primary"
-                app:menu="@menu/admin_top_menu"
-                app:navigationIcon="@drawable/ic_back"
-                app:title="Results"
-                app:titleCentered="true"
-                app:titleTextColor="@color/white" />
-
-        </com.google.android.material.appbar.AppBarLayout>
-
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_margin="10dp"
-            android:layout_below="@id/topBar"
-          >
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                >
+            android:layout_marginTop="60dp">
 
-                <Spinner
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
-                    android:id="@+id/spinner_class"
-                    />
-
-                <Spinner
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
-                    android:id="@+id/spinner_term"
-                    />
-            </LinearLayout>
-
-            <!-- Search EditText -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/textInputLayout_search"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:hint="@string/search_student"
-                app:hintTextColor="@color/colorPrimaryDark"
-                android:focusedByDefault="true"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                android:layout_height="wrap_content">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editText_search"
+                <LinearLayout
+                    android:id="@+id/details_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:imeOptions="actionDone"
-                    android:textColor="@android:color/black"
-                    android:textColorHint="@color/colorPrimaryDark"
-                    android:padding="10dp"/>
+                    android:orientation="horizontal">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <Spinner
+                        android:id="@+id/year"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
+                    <Spinner
+                        android:id="@+id/spinnerClass"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
-            <!-- RecyclerView for displaying students -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recycler_view_students"
+                    <Spinner
+                        android:id="@+id/spinnerTerm"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+
+                <Spinner
+                    android:id="@+id/spinnerStudentName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/details_layout"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:spinnerMode="dropdown" />
+
+                <TableLayout
+                    android:id="@+id/tableLayoutSubjects"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp" />
+                    android:layout_below="@id/spinnerStudentName"
+                    android:layout_marginTop="2dp"
+                    android:stretchColumns="*">
 
+                    <!-- Table header row -->
+                    <TableRow>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Subject"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="C1"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="C2"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
 
-        </LinearLayout>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="C3"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="C4"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="/20"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Avr"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
+                    </TableRow>
+
+                </TableLayout>
+            </RelativeLayout>
+        </ScrollView>
+
+        <!-- Button to Add Result -->
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/buttonAddResult"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit Result"
+            android:layout_marginEnd="6dp"
+            android:layout_gravity="end"
+            android:backgroundTint="@color/colorPrimary"
+            android:textColor="@color/white"
+            app:icon="@drawable/ic_add"
+            app:iconTint="@color/white"
+            android:layout_above="@id/bottom_app_bar"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="20dp" />
 
         <!-- Bottom Navigation View -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -111,12 +166,5 @@
             app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
             app:menu="@menu/admin_bottom_menu"
             android:layout_alignParentBottom="true" />
-
-
-
     </RelativeLayout>
-
-
-
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,325 +1,369 @@
 package com.ugwebstudio.schoolresultsmanagementapp.teacher;
 
-import android.content.Intent;
+import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.util.Log;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.ugwebstudio.schoolresultsmanagementapp.R;
-import com.ugwebstudio.schoolresultsmanagementapp.admin.MainActivity;
-import com.ugwebstudio.schoolresultsmanagementapp.admin.ManageClassesActivity;
-import com.ugwebstudio.schoolresultsmanagementapp.teacher.ManageResultsActivity;
-import com.ugwebstudio.schoolresultsmanagementapp.admin.StudentReportActivity;
-import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentClass;
+import com.ugwebstudio.schoolresultsmanagementapp.classes.InputFilterMinMax;
+import com.ugwebstudio.schoolresultsmanagementapp.classes.SubjectResult;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class ManageResultsActivity extends AppCompatActivity {
 
-    private Spinner spinnerClass, spinnerStudent, spinnerTerms;
-    private MaterialButton buttonAddResult;
-
+    private Spinner spinnerYear, spinnerClass, spinnerTerm, spinnerStudentName;
+    private TableLayout tableLayoutSubjects;
     private FirebaseFirestore db;
-
-    private StudentClass studentClass;
-    private AutoCompleteTextView subjectAutoComplete;
-
-    private ChipGroup chipGroupResultType;
-    private String studentId;
-
-    private List<String> studentIds;
-    private TextInputEditText marksEditText;
-
+    private ExtendedFloatingActionButton buttonSave;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_results);
 
-        // Initialize Firestore
+        spinnerYear = findViewById(R.id.year);
+        spinnerClass = findViewById(R.id.spinnerClass);
+        spinnerTerm = findViewById(R.id.spinnerTerm);
+        spinnerStudentName = findViewById(R.id.spinnerStudentName);
+        tableLayoutSubjects = findViewById(R.id.tableLayoutSubjects);
+        buttonSave = findViewById(R.id.buttonAddResult);
+        
+        buttonSave.setOnClickListener(view -> saveResultsToFirestore());
+        
+
         db = FirebaseFirestore.getInstance();
 
-        // Initialize views
-        spinnerClass = findViewById(R.id.spinnerClass);
-        spinnerStudent = findViewById(R.id.spinnerStudent);
-        buttonAddResult = findViewById(R.id.buttonAddResult);
-        spinnerTerms = findViewById(R.id.spinnerTerm);
-        subjectAutoComplete = findViewById(R.id.autoCompleteTextViewSubject);
-        marksEditText = findViewById(R.id.editTextMarks);
+        setupSpinners();
+        loadSubjects();
+    }
 
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
 
-        toolbar.setNavigationOnClickListener(view -> onBackPressed());
 
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_app_bar);
-        bottomNavigationView.setOnItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.bottom_home){
-                startActivity(new Intent(ManageResultsActivity.this, MainActivity.class));
-            }
-            if (item.getItemId() == R.id.bottom_report){
-                startActivity(new Intent(ManageResultsActivity.this, StudentReportActivity.class));
 
-            }
-            if (item.getItemId() == R.id.bottom_classes){
-                startActivity(new Intent(ManageResultsActivity.this, ManageClassesActivity.class));
+    private void setupSpinners() {
+        // Setup the year, class, term spinners with dummy data
+        // You can replace this with your actual data source
+        ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.year_array));
+        yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerYear.setAdapter(yearAdapter);
 
-            }
-            if (item.getItemId() == R.id.bottom_results){
-                startActivity(new Intent(ManageResultsActivity.this, ManageResultsActivity.class));
+        ArrayAdapter<String> classAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.classes_array));
+        classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerClass.setAdapter(classAdapter);
 
-            }
-
-            return false;
-        });
-
-// Find the ChipGroup in your layout
-        chipGroupResultType = findViewById(R.id.chipGroupResultType);
-
-// Set an OnCheckedChangeListener to the ChipGroup
-        chipGroupResultType.setOnCheckedChangeListener(new ChipGroup.OnCheckedChangeListener() {
+        // Similarly set adapter for spinnerTerm
+        // Setup the term spinner with term values
+        ArrayAdapter<String> termAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.terms_array));
+        termAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTerm.setAdapter(termAdapter);
+        // Add an onItemSelectedListener to fetch students based on selected class and year
+        // Add onItemSelectedListener to fetch students based on selected class and year
+        spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onCheckedChanged(ChipGroup group, int checkedId) {
-                // Loop through each chip in the group
-                for (int i = 0; i < group.getChildCount(); i++) {
-                    Chip chip = (Chip) group.getChildAt(i);
-                    // If the chip is checked and its ID is not the same as the checkedId,
-                    // deselect it
-                    if (chip.getId() != checkedId) {
-                        chip.setChecked(false);
-                    } else {
-                        // Update the chip background to show the tick
-                        chip.setCheckedIconVisible(true);
-                    }
-                }
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                fetchStudents();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
             }
         });
 
-
-
-        // Inside onCreate method or wherever appropriate
         spinnerClass.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                String selectedClass = parentView.getItemAtPosition(position).toString();
-                loadStudentsFromFirestore(selectedClass);
-                loadSubjectsFromFirestore();
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                fetchStudents();
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-                // Do nothing if no class is selected
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
             }
         });
 
 
-        // Load classes from Firestore
-        loadClassesFromFirestore();
-        loadTerms();
-
-        // Add click listener to the Add Result button
-        buttonAddResult.setOnClickListener(v -> {
-            // Add your logic to add the result to Firestore
-            addResultToFirestore();
-        });
     }
 
+    private void loadSubjects() {
+        String[] subjects = getResources().getStringArray(R.array.o_level_subs);
 
-    // Method to load classes from Firestore and populate spinner
-    private void loadClassesFromFirestore() {
-        db.collection("classes")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        List<String> classNames = new ArrayList<>();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                             studentClass = document.toObject(StudentClass.class);
-                            classNames.add(document.getString("className"));
+        int studentCount = 10; // Restrict to 10 students
+        for (String subject : subjects) {
+            TableRow row = new TableRow(this);
 
+            TextView subjectText = new TextView(this);
+            subjectText.setText(subject.length() >= 3 ? subject.substring(0, 3) : subject);
+            row.addView(subjectText);
+
+            double[] subjectScores = new double[studentCount];
+            for (int i = 0; i < studentCount; i++) {
+                EditText editText = new EditText(this);
+                editText.setHint(" "); // Set hint to indicate valid range
+                editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL); // Set input type to decimal number
+                editText.setFilters(new InputFilter[]{new InputFilterMinMax(0.9, 3.0)});
+
+                final int index = i;
+                editText.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        if (!TextUtils.isEmpty(s.toString())) {
+                            subjectScores[index] = Double.parseDouble(s.toString());
+                            updateTotalAndAverage(row, subjectScores);
+                        } else {
+                            subjectScores[index] = 0.0;
+                            updateTotalAndAverage(row, subjectScores);
                         }
-                        // Populate spinner with class names
-                        ArrayAdapter<String> classAdapter = new ArrayAdapter<>(ManageResultsActivity.this, android.R.layout.simple_spinner_item, classNames);
-                        classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        spinnerClass.setAdapter(classAdapter);
-
-
-                    } else {
-                        Toast.makeText(ManageResultsActivity.this, "Failed to load classes", Toast.LENGTH_SHORT).show();
                     }
                 });
+
+                row.addView(editText);
+            }
+
+            tableLayoutSubjects.addView(row);
+        }
     }
 
-    // Define the method to load students from Firestore and populate spinner based on selected class
-// Define the method to load students from Firestore and populate spinner based on selected class
-    private void loadStudentsFromFirestore(String selectedClass) {
-        Toast.makeText(this, selectedClass, Toast.LENGTH_SHORT).show();
+    @SuppressLint("DefaultLocale")
+    private void updateTotalAndAverage(TableRow row, double[] scores) {
+        double total = 0;
+        for (double score : scores) {
+            total += score;
+        }
+
+        // Find the TextViews for total and average in the row
+        TextView totalView = (TextView) row.getChildAt(row.getChildCount() - 2); // Assuming total is at the second last position
+        TextView averageView = (TextView) row.getChildAt(row.getChildCount() - 1); // Assuming average is at the last position
+
+        totalView = new TextView(this);
+        totalView.setText(String.format("%.1f", total));
+
+        double average = total / scores.length;
+         averageView = new TextView(this);
+        averageView.setText(String.format("%.1f", average));
+
+//        // Remove existing total and average views, if any
+        row.removeViewAt(row.getChildCount() - 1);
+        row.removeViewAt(row.getChildCount() - 1);
+
+        row.addView(totalView);
+        row.addView(averageView);
+    }
+
+
+    private void fetchStudents() {
+        String selectedClass = spinnerClass.getSelectedItem().toString();
+        String selectedYear = spinnerYear.getSelectedItem().toString();
+
+        // Show a progress dialog
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Loading students...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
         db.collection("students")
-                .whereEqualTo("studentClass",  selectedClass)
+                .whereEqualTo("studentClass", selectedClass)
+                .whereEqualTo("academicYear", selectedYear)
                 .get()
                 .addOnCompleteListener(task -> {
+                    // Dismiss the progress dialog
+                    progressDialog.dismiss();
+
                     if (task.isSuccessful()) {
                         List<String> studentNames = new ArrayList<>();
-                        studentIds = new ArrayList<>();
-
+                        List<String> studentIds = new ArrayList<>(); // Add a list to store student IDs
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            String studentName = document.getString("name");
-                            String studentId = document.getId();
-
-                            Toast.makeText(this,studentId,Toast.LENGTH_LONG).show();
-                            studentNames.add(studentName);
-                            studentIds.add(studentId);
+                            studentNames.add(document.getString("name"));
+                            studentIds.add(document.getId()); // Add the student ID to the list
                         }
-
-                        // Populate spinner with student names
-                        ArrayAdapter<String> studentAdapter = new ArrayAdapter<>(ManageResultsActivity.this, android.R.layout.simple_spinner_item, studentNames);
-                        studentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        spinnerStudent.setAdapter(studentAdapter);
+                        updateStudentSpinner(studentNames, studentIds);
                     } else {
-                        Toast.makeText(ManageResultsActivity.this, "Failed to load students", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ManageResultsActivity.this, "Failed to fetch students", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-
-    private void loadSubjectsFromFirestore() {
-        // Define your array of subjects for O level and A level
-        String[] subjectsArray = {
-                "Mathematics", "English Language", "Physics", "Chemistry", "Biology", "Geography", "History", "Commerce", "Accounts", "Divinity", "Agriculture", "Fine Art", // O level subjects
-                "General Paper",  "Economics", "Art", "Literature in English", "Entrepreneurship", "Computer Studies" // A level subjects
-        };
-
-// Create an ArrayAdapter for the subjects array
-        ArrayAdapter<String> subjectAdapter = new ArrayAdapter<>(ManageResultsActivity.this, android.R.layout.simple_dropdown_item_1line, subjectsArray);
-
-// Set the adapter to your AutoCompleteTextView
-        subjectAutoComplete.setAdapter(subjectAdapter);
-
-    }
-
-    private void loadTerms() {
-        // Define your array of subjects for O level and A level
-        String[] termsArray = {
-                 "Term One", "Term Two", "Term Three" // A level subjects
-        };
-
-// Create an ArrayAdapter for the subjects array
-        ArrayAdapter<String> termsAdapter = new ArrayAdapter<>(ManageResultsActivity.this, android.R.layout.simple_dropdown_item_1line, termsArray);
-
-// Set the adapter to your AutoCompleteTextView
-        spinnerTerms.setAdapter(termsAdapter);
-
+    private void updateStudentSpinner(List<String> studentNames, List<String> studentIds) {
+        ArrayAdapter<String> studentAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, studentNames);
+        studentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerStudentName.setAdapter(studentAdapter);
+        spinnerStudentName.setTag(studentIds); // Store the list of student IDs as a tag in the spinner
     }
 
 
-    private void addResultToFirestore() {
-        // Get selected values
-        String selectedClass = spinnerClass.getSelectedItem().toString();
-        String selectedStudent = spinnerStudent.getSelectedItem().toString();
-        studentId = studentIds.get(spinnerStudent.getSelectedItemPosition());
-        String selectedSubject = subjectAutoComplete.getText().toString();
-        String selectedTerm = spinnerTerms.getSelectedItem().toString();
-        String selectedResultType = getSelectedResultType();
-        int marks = Integer.parseInt(marksEditText.getText().toString().trim());
+    private void saveResultsToFirestore() {
+        // Sanitize the selectedYear
+        String selectedYear = sanitizeSpinnerValue(spinnerYear.getSelectedItem().toString());
+
+        // Sanitize the selectedClass
+        String selectedClass = sanitizeSpinnerValue(spinnerClass.getSelectedItem().toString());
+
+        // Sanitize the selectedTerm
+        String selectedTerm = sanitizeSpinnerValue(spinnerTerm.getSelectedItem().toString());
+
+        // Sanitize the selectedStudentName
+        String selectedStudentName = sanitizeSpinnerValue(spinnerStudentName.getSelectedItem().toString());
 
 
-        // Perform validation if needed
-        validateInputs();
+        List<String> studentIds = (List<String>) spinnerStudentName.getTag(); // Get the list of student IDs from the tag
+        int selectedPosition = spinnerStudentName.getSelectedItemPosition();
+        String selectedStudentId = studentIds.get(selectedPosition); // Get the selected student ID
 
-        // Create a map to store the result data
-        Map<String, Object> resultData = new HashMap<>();
-        resultData.put("class", selectedClass);
-        resultData.put("student", selectedStudent);
-        resultData.put("subject", selectedSubject);
-        resultData.put("term", selectedTerm);
-        resultData.put("resultType", selectedResultType);
-        resultData.put("studentId", studentId);
-        resultData.put("marks",marks);
+        List<SubjectResult> results = new ArrayList<>();
 
-        // Add the result data to Firestore
+        for (int i = 0; i < tableLayoutSubjects.getChildCount(); i++) {
+            TableRow row = (TableRow) tableLayoutSubjects.getChildAt(i);
+            TextView subjectText = (TextView) row.getChildAt(0);
+
+            String subject = subjectText.getText().toString();
+            List<Double> scores = new ArrayList<>();
+
+            for (int j = 1; j <= 10; j++) {
+                View view = row.getChildAt(j);
+                if (view instanceof EditText) {
+                    EditText scoreInput = (EditText) view;
+                    String scoreStr = scoreInput.getText().toString();
+                    double score = TextUtils.isEmpty(scoreStr) ? 0.0 : Double.parseDouble(scoreStr);
+                    scores.add(score);
+                }
+            }
+
+            results.add(new SubjectResult(subject, scores));
+        }
+
+        saveToFirestore(selectedYear, selectedClass, selectedTerm, selectedStudentName, selectedStudentId, results);
+    }
+
+    private String sanitizeSpinnerValue(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        value = value.trim(); // Remove leading and trailing whitespace
+
+        if (value.isEmpty()) {
+            throw new IllegalArgumentException("Spinner value cannot be empty");
+        }
+
+        return value;
+    }
+
+    private void saveToFirestore(String year, String className, String term, String studentName, String studentId, List<SubjectResult> results) {
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Saving results...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        StudentResultData resultData = new StudentResultData(year, className, term, studentName, studentId, results);
+
         db.collection("results")
                 .add(resultData)
                 .addOnSuccessListener(documentReference -> {
-                    Log.d("studentId",studentId);
-                    Toast.makeText(ManageResultsActivity.this, "Result added successfully", Toast.LENGTH_SHORT).show();
-                    // Clear input fields or perform any other necessary actions
+                    progressDialog.dismiss();
+                    Toast.makeText(ManageResultsActivity.this, "Results saved successfully", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(ManageResultsActivity.this, "Failed to add result", Toast.LENGTH_SHORT).show();
+                    progressDialog.dismiss();
+                    Toast.makeText(ManageResultsActivity.this, "Failed to save results", Toast.LENGTH_SHORT).show();
                 });
     }
 
-    private String getSelectedResultType() {
-        Chip selectedChip = findViewById(chipGroupResultType.getCheckedChipId());
-        return selectedChip != null ? selectedChip.getText().toString() : "";
-    }
+    public class StudentResultData {
+        private String year;
+        private String className;
+        private String term;
+        private String studentName;
+        private String studentId;
+        private List<SubjectResult> results;
 
-    private boolean validateInputs() {
-        // Validate selected class
-        String selectedClass = spinnerClass.getSelectedItem().toString();
-        if (selectedClass.isEmpty()) {
-            Toast.makeText(this, "Please select a class", Toast.LENGTH_SHORT).show();
-            return false;
+        public StudentResultData() {
+            // Default constructor required for calls to DataSnapshot.getValue(StudentResultData.class)
         }
 
-        // Validate selected student
-        String selectedStudent = spinnerStudent.getSelectedItem().toString();
-        if (selectedStudent.isEmpty()) {
-            Toast.makeText(this, "Please select a student", Toast.LENGTH_SHORT).show();
-            return false;
+        public StudentResultData(String year, String className, String term, String studentName, String studentId, List<SubjectResult> results) {
+            this.year = year;
+            this.className = className;
+            this.term = term;
+            this.studentName = studentName;
+            this.studentId = studentId;
+            this.results = results;
         }
 
-        // Validate selected subject
-        String selectedSubject = subjectAutoComplete.getText().toString().trim();
-        if (selectedSubject.isEmpty()) {
-            Toast.makeText(this, "Please enter a subject", Toast.LENGTH_SHORT).show();
-            return false;
+        // Getters and setters for all fields
+        public String getYear() {
+            return year;
         }
 
-        // Validate selected term
-        String selectedTerm = spinnerTerms.getSelectedItem().toString();
-        if (selectedTerm.isEmpty()) {
-            Toast.makeText(this, "Please select a term", Toast.LENGTH_SHORT).show();
-            return false;
+        public void setYear(String year) {
+            this.year = year;
         }
 
-        // Validate selected result type
-        String selectedResultType = getSelectedResultType();
-        if (selectedResultType.isEmpty()) {
-            Toast.makeText(this, "Please select a result type", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        String marks = marksEditText.getText().toString();
-
-        if (marks.isEmpty()){
-            Toast.makeText(this, "Please Enter the marks", Toast.LENGTH_SHORT).show();
-            marksEditText.requestFocus();
-            marksEditText.setError("Please Enter the marks");
-            return false;
+        public String getClassName() {
+            return className;
         }
 
-        return true;
+        public void setClassName(String className) {
+            this.className = className;
+        }
+
+        public String getTerm() {
+            return term;
+        }
+
+        public void setTerm(String term) {
+            this.term = term;
+        }
+
+        public String getStudentName() {
+            return studentName;
+        }
+
+        public void setStudentName(String studentName) {
+            this.studentName = studentName;
+        }
+
+        public String getStudentId() {
+            return studentId;
+        }
+
+        public void setStudentId(String studentId) {
+            this.studentId = studentId;
+        }
+
+        public List<SubjectResult> getResults() {
+            return results;
+        }
+
+        public void setResults(List<SubjectResult> results) {
+            this.results = results;
+        }
     }
 
 }

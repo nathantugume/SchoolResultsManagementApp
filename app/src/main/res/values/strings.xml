@@ -35,6 +35,12 @@
         <item>Subsidiary Music</item>
         <item>Subsidiary Physical Education</item>
 
+
+
+
+    </string-array>
+
+    <string-array name="o_level_subs">
         <!-- O-Level Subjects -->
         <item>English Language</item>
         <item>Mathematics</item>
@@ -46,68 +52,25 @@
         <item>Commerce</item>
         <item>Economics</item>
         <item>Literature in English</item>
-        <item>Divinity</item>
         <item>Agriculture</item>
         <item>Computer Studies</item>
-        <item>Physical Education</item>
         <item>Art and Design</item>
-        <item>Music</item>
-        <item>Fine Art</item>
-        <item>Food and Nutrition</item>
-        <item>Home Management</item>
-        <item>Woodwork</item>
-        <item>Metalwork</item>
-        <item>Technical Drawing</item>
-        <item>French</item>
-        <item>German</item>
-        <item>Arabic</item>
-        <item>Luganda</item>
-        <item>Kiswahili</item>
-        <item>Literature in Luganda</item>
-        <item>Latin</item>
-        <item>Physical Education</item>
-        <item>Health Education</item>
-        <item>Physical Science</item>
         <item>Commerce</item>
-        <item>Accounting</item>
-        <item>Principles of Accounts (POA)</item>
-        <item>Bookkeeping and Accounts</item>
-        <item>Woodwork</item>
-        <item>Building and Construction</item>
-        <item>Metalwork</item>
-        <item>Technical Drawing</item>
-        <item>Information and Communication Technology (ICT)</item>
-        <item>Entrepreneurship</item>
-        <item>Agriculture</item>
-        <item>Food and Nutrition</item>
-        <item>Health Education</item>
-        <item>Computer Studies</item>
-        <item>Photography</item>
-        <item>General Science</item>
-        <item>Physical Education</item>
-        <item>Environmental Education</item>
-        <item>Art and Design</item>
-        <item>Music Dance and Drama</item>
-        <item>Christian Religious Education (CRE)</item>
-        <item>Islamic Religious Education (IRE)</item>
-        <item>Islamic Religious Knowledge (IRK)</item>
-        <item>French</item>
-        <item>German</item>
-        <item>Arabic</item>
-        <item>Luganda</item>
-        <item>Kiswahili</item>
-        <item>Literature in Luganda</item>
-        <item>Literature in Swahili</item>
-        <item>Literature in Arabic</item>
-        <item>Literature in French</item>
-        <item>Literature in German</item>
-        <item>Christian Religious Education (CRE)</item>
-        <item>Islamic Religious Education (IRE)</item>
-        <item>Islamic Religious Knowledge (IRK)</item>
-        <item>Physical Education</item>
-        <item>Environmental Education</item>
+        <item>ICT</item>
     </string-array>
 
+    <!-- Year Array -->
+    <string-array name="year_array">
+        <item>2023</item>
+        <item>2024</item>
+        <item>2025</item>
+    </string-array>
+
+    <string-array name="terms_array">
+        <item>Term 1</item>
+        <item>Term 2</item>
+        <item>Term 3</item>
+    </string-array>
 
     <string-array name="classes_array">
         <item>senior one</item>
@@ -138,6 +101,7 @@
     <string name="student_id">Student Id :</string>
     <string name="subject_s">Subject(s):</string>
     <string name="you_have_no_results_at_the_moment">You have no results at the moment</string>
+    <string name="calculate">Calculate</string>
 
 
 </resources>

@@ -26,148 +26,115 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
+        android:layout_height="wrap_content">
+
         <!-- NestedScrollView for scrolling content -->
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="60dp"
-            >
-            <LinearLayout
+            android:layout_marginTop="60dp">
+
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_height="wrap_content">
 
-                <!-- Select Term -->
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Select Term"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:layout_marginBottom="8dp"/>
-
-                <Spinner
-                    android:id="@+id/spinnerTerm"
+                <LinearLayout
+                    android:id="@+id/details_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:layout_constraintTop_toBottomOf="@id/spinnerStudent"/>
-
-                <!-- Select Class -->
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Select Class"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="8dp"/>
-
-                <Spinner
-                    android:id="@+id/spinnerClass"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintTop_toBottomOf="@id/spinnerTerm"/>
-
-                <!-- Select Student -->
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Select Student"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="8dp"/>
-
-                <Spinner
-                    android:id="@+id/spinnerStudent"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    />
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Enter Subject"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="8dp"/>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/autoCompleteTextViewSubject"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Enter Subject"/>
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-
-                <!-- Result Type -->
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Result Type"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="8dp"/>
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chipGroupResultType"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    app:singleSelection="true"
                     android:orientation="horizontal">
 
-                    <!-- Chip for Beginning of Term -->
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipBeginningOfTerm"
-                        style="@style/Widget.Material3.Chip.Input"                    android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Beginning of Term"/>
+                    <Spinner
+                        android:id="@+id/year"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
-                    <!-- Chip for Midterm -->
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipMidterm"
-                        style="@style/Widget.Material3.Chip.Input"                    android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Midterm"/>
+                    <Spinner
+                        android:id="@+id/spinnerClass"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
-                    <!-- Chip for End of Term -->
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipEndOfTerm"
-                        style="@style/Widget.Material3.Chip.Input"                    android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="End of Term"/>
+                    <Spinner
+                        android:id="@+id/spinnerTerm"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
-                    <!-- Add more chips as needed -->
+                </LinearLayout>
 
-                </com.google.android.material.chip.ChipGroup>
-                <!-- Result Input -->
-                <com.google.android.material.textfield.TextInputLayout
+                <Spinner
+                    android:id="@+id/spinnerStudentName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/details_layout"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:spinnerMode="dropdown" />
+
+                <TableLayout
+                    android:id="@+id/tableLayoutSubjects"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/spinnerStudentName"
+                    android:layout_marginTop="2dp"
+                    android:stretchColumns="*">
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/editTextMarks"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Marks /100"
-                        android:inputType="numberDecimal"/>
+                    <!-- Table header row -->
+                    <TableRow>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Subject"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
 
-                </com.google.android.material.textfield.TextInputLayout>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="C1"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="C2"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="C3"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
 
-            </LinearLayout>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="C4"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="/20"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Avr"
+                            android:padding="2dp"
+                            android:gravity="center_horizontal" />
+                    </TableRow>
+
+                </TableLayout>
+            </RelativeLayout>
         </ScrollView>
+
         <!-- Button to Add Result -->
         <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
             android:id="@+id/buttonAddResult"
@@ -182,8 +149,7 @@
             app:iconTint="@color/white"
             android:layout_above="@id/bottom_app_bar"
             android:layout_alignParentEnd="true"
-            android:layout_marginBottom="20dp"
-            />
+            android:layout_marginBottom="20dp" />
 
         <!-- Bottom Navigation View -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -201,7 +167,4 @@
             app:menu="@menu/admin_bottom_menu"
             android:layout_alignParentBottom="true" />
     </RelativeLayout>
-
-
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
