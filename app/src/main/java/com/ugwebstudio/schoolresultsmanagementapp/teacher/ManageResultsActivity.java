@@ -48,9 +48,8 @@ public class ManageResultsActivity extends AppCompatActivity {
         spinnerStudentName = findViewById(R.id.spinnerStudentName);
         tableLayoutSubjects = findViewById(R.id.tableLayoutSubjects);
         buttonSave = findViewById(R.id.buttonAddResult);
-        
+
         buttonSave.setOnClickListener(view -> saveResultsToFirestore());
-        
 
         db = FirebaseFirestore.getInstance();
 
@@ -58,12 +57,7 @@ public class ManageResultsActivity extends AppCompatActivity {
         loadSubjects();
     }
 
-
-
-
     private void setupSpinners() {
-        // Setup the year, class, term spinners with dummy data
-        // You can replace this with your actual data source
         ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.year_array));
         yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerYear.setAdapter(yearAdapter);
@@ -72,13 +66,10 @@ public class ManageResultsActivity extends AppCompatActivity {
         classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerClass.setAdapter(classAdapter);
 
-        // Similarly set adapter for spinnerTerm
-        // Setup the term spinner with term values
         ArrayAdapter<String> termAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.terms_array));
         termAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerTerm.setAdapter(termAdapter);
-        // Add an onItemSelectedListener to fetch students based on selected class and year
-        // Add onItemSelectedListener to fetch students based on selected class and year
+
         spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -86,9 +77,7 @@ public class ManageResultsActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
 
         spinnerClass.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -98,21 +87,16 @@ public class ManageResultsActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
-
-
     }
 
     private void loadSubjects() {
         String[] subjects = getResources().getStringArray(R.array.o_level_subs);
+        int studentCount = 10;
 
-        int studentCount = 10; // Restrict to 10 students
         for (String subject : subjects) {
             TableRow row = new TableRow(this);
-
             TextView subjectText = new TextView(this);
             subjectText.setText(subject.length() >= 3 ? subject.substring(0, 3) : subject);
             row.addView(subjectText);
@@ -120,9 +104,8 @@ public class ManageResultsActivity extends AppCompatActivity {
             double[] subjectScores = new double[studentCount];
             for (int i = 0; i < studentCount; i++) {
                 EditText editText = new EditText(this);
-                editText.setHint(" "); // Set hint to indicate valid range
-                editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL); // Set input type to decimal number
-                editText.setFilters(new InputFilter[]{new InputFilterMinMax(0.9, 3.0)});
+                editText.setHint(" ");
+                editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
                 final int index = i;
                 editText.addTextChangedListener(new TextWatcher() {
@@ -134,13 +117,22 @@ public class ManageResultsActivity extends AppCompatActivity {
 
                     @Override
                     public void afterTextChanged(Editable s) {
-                        if (!TextUtils.isEmpty(s.toString())) {
-                            subjectScores[index] = Double.parseDouble(s.toString());
-                            updateTotalAndAverage(row, subjectScores);
+                        String input = s.toString();
+                        if (!TextUtils.isEmpty(input) && input.matches("^\\d*(\\.\\d{0,1})?$")) {
+                            double value = Double.parseDouble(input);
+                            if (value >= 0.9 && value <= 3.0) {
+                                subjectScores[index] = value;
+                            } else {
+                                subjectScores[index] = 0.0;
+                                editText.setError("Value must be between 0.9 and 3.0");
+                                Toast.makeText(ManageResultsActivity.this, "Value must be between 0.9 and 3.0", Toast.LENGTH_SHORT).show();
+                            }
                         } else {
                             subjectScores[index] = 0.0;
-                            updateTotalAndAverage(row, subjectScores);
+                            editText.setError("Invalid format");
+                            Toast.makeText(ManageResultsActivity.this, "Invalid format", Toast.LENGTH_SHORT).show();
                         }
+                        updateTotalAndAverage(row, subjectScores);
                     }
                 });
 
@@ -158,18 +150,13 @@ public class ManageResultsActivity extends AppCompatActivity {
             total += score;
         }
 
-        // Find the TextViews for total and average in the row
-        TextView totalView = (TextView) row.getChildAt(row.getChildCount() - 2); // Assuming total is at the second last position
-        TextView averageView = (TextView) row.getChildAt(row.getChildCount() - 1); // Assuming average is at the last position
-
-        totalView = new TextView(this);
+        TextView totalView = new TextView(this);
         totalView.setText(String.format("%.1f", total));
 
         double average = total / scores.length;
-         averageView = new TextView(this);
+        TextView averageView = new TextView(this);
         averageView.setText(String.format("%.1f", average));
 
-//        // Remove existing total and average views, if any
         row.removeViewAt(row.getChildCount() - 1);
         row.removeViewAt(row.getChildCount() - 1);
 
@@ -177,12 +164,15 @@ public class ManageResultsActivity extends AppCompatActivity {
         row.addView(averageView);
     }
 
-
     private void fetchStudents() {
-        String selectedClass = spinnerClass.getSelectedItem().toString();
-        String selectedYear = spinnerYear.getSelectedItem().toString();
+        String selectedClass = spinnerClass.getSelectedItem() != null ? spinnerClass.getSelectedItem().toString() : "";
+        String selectedYear = spinnerYear.getSelectedItem() != null ? spinnerYear.getSelectedItem().toString() : "";
 
-        // Show a progress dialog
+        if (TextUtils.isEmpty(selectedClass) || TextUtils.isEmpty(selectedYear)) {
+            Toast.makeText(this, "Please select both year and class", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Loading students...");
         progressDialog.setCancelable(false);
@@ -193,15 +183,14 @@ public class ManageResultsActivity extends AppCompatActivity {
                 .whereEqualTo("academicYear", selectedYear)
                 .get()
                 .addOnCompleteListener(task -> {
-                    // Dismiss the progress dialog
                     progressDialog.dismiss();
 
                     if (task.isSuccessful()) {
                         List<String> studentNames = new ArrayList<>();
-                        List<String> studentIds = new ArrayList<>(); // Add a list to store student IDs
+                        List<String> studentIds = new ArrayList<>();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             studentNames.add(document.getString("name"));
-                            studentIds.add(document.getId()); // Add the student ID to the list
+                            studentIds.add(document.getId());
                         }
                         updateStudentSpinner(studentNames, studentIds);
                     } else {
@@ -214,51 +203,81 @@ public class ManageResultsActivity extends AppCompatActivity {
         ArrayAdapter<String> studentAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, studentNames);
         studentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerStudentName.setAdapter(studentAdapter);
-        spinnerStudentName.setTag(studentIds); // Store the list of student IDs as a tag in the spinner
+        spinnerStudentName.setTag(studentIds);
     }
 
-
     private void saveResultsToFirestore() {
-        // Sanitize the selectedYear
-        String selectedYear = sanitizeSpinnerValue(spinnerYear.getSelectedItem().toString());
+        String selectedYear = sanitizeSpinnerValue(spinnerYear.getSelectedItem() != null ? spinnerYear.getSelectedItem().toString() : "");
+        String selectedClass = sanitizeSpinnerValue(spinnerClass.getSelectedItem() != null ? spinnerClass.getSelectedItem().toString() : "");
+        String selectedTerm = sanitizeSpinnerValue(spinnerTerm.getSelectedItem() != null ? spinnerTerm.getSelectedItem().toString() : "");
+        String selectedStudentName = sanitizeSpinnerValue(spinnerStudentName.getSelectedItem() != null ? spinnerStudentName.getSelectedItem().toString() : "");
 
-        // Sanitize the selectedClass
-        String selectedClass = sanitizeSpinnerValue(spinnerClass.getSelectedItem().toString());
-
-        // Sanitize the selectedTerm
-        String selectedTerm = sanitizeSpinnerValue(spinnerTerm.getSelectedItem().toString());
-
-        // Sanitize the selectedStudentName
-        String selectedStudentName = sanitizeSpinnerValue(spinnerStudentName.getSelectedItem().toString());
-
-
-        List<String> studentIds = (List<String>) spinnerStudentName.getTag(); // Get the list of student IDs from the tag
-        int selectedPosition = spinnerStudentName.getSelectedItemPosition();
-        String selectedStudentId = studentIds.get(selectedPosition); // Get the selected student ID
-
-        List<SubjectResult> results = new ArrayList<>();
-
-        for (int i = 0; i < tableLayoutSubjects.getChildCount(); i++) {
-            TableRow row = (TableRow) tableLayoutSubjects.getChildAt(i);
-            TextView subjectText = (TextView) row.getChildAt(0);
-
-            String subject = subjectText.getText().toString();
-            List<Double> scores = new ArrayList<>();
-
-            for (int j = 1; j <= 10; j++) {
-                View view = row.getChildAt(j);
-                if (view instanceof EditText) {
-                    EditText scoreInput = (EditText) view;
-                    String scoreStr = scoreInput.getText().toString();
-                    double score = TextUtils.isEmpty(scoreStr) ? 0.0 : Double.parseDouble(scoreStr);
-                    scores.add(score);
-                }
-            }
-
-            results.add(new SubjectResult(subject, scores));
+        if (TextUtils.isEmpty(selectedYear) || TextUtils.isEmpty(selectedClass) || TextUtils.isEmpty(selectedTerm) || TextUtils.isEmpty(selectedStudentName)) {
+            Toast.makeText(this, "Please make sure all selections are made", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        saveToFirestore(selectedYear, selectedClass, selectedTerm, selectedStudentName, selectedStudentId, results);
+        List<String> studentIds = (List<String>) spinnerStudentName.getTag();
+        int selectedPosition = spinnerStudentName.getSelectedItemPosition();
+        String selectedStudentId = studentIds != null ? studentIds.get(selectedPosition) : "";
+
+        if (TextUtils.isEmpty(selectedStudentId)) {
+            Toast.makeText(this, "Invalid student selection", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        checkForDuplicateAndSaveResults(selectedYear, selectedClass, selectedTerm, selectedStudentName, selectedStudentId);
+    }
+
+    private void checkForDuplicateAndSaveResults(String year, String className, String term, String studentName, String studentId) {
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Checking for duplicates...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        db.collection("results")
+                .whereEqualTo("year", year)
+                .whereEqualTo("className", className)
+                .whereEqualTo("term", term)
+                .whereEqualTo("studentId", studentId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    progressDialog.dismiss();
+
+                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                        Toast.makeText(ManageResultsActivity.this, "Results for this term already exist", Toast.LENGTH_SHORT).show();
+                    } else {
+                        List<SubjectResult> results = new ArrayList<>();
+                        for (int i = 0; i < tableLayoutSubjects.getChildCount(); i++) {
+                            TableRow row = (TableRow) tableLayoutSubjects.getChildAt(i);
+                            TextView subjectText = (TextView) row.getChildAt(0);
+
+                            String subject = subjectText.getText().toString();
+                            List<Double> scores = new ArrayList<>();
+                            for (int j = 1; j <= 10; j++) {
+                                View view = row.getChildAt(j);
+                                if (view instanceof EditText) {
+                                    EditText scoreInput = (EditText) view;
+                                    String scoreStr = scoreInput.getText().toString();
+                                    if (!TextUtils.isEmpty(scoreStr)) {
+                                        double score = Double.parseDouble(scoreStr);
+                                        if (score != 0.0) {
+                                            scores.add(score);
+                                        }
+                                    }
+                                }
+                            }
+                            if (!scores.isEmpty()) {
+                                results.add(new SubjectResult(subject, scores));
+                            }
+                        }
+                        saveToFirestore(year, className, term, studentName, studentId, results);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(ManageResultsActivity.this, "Failed to check for duplicates", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private String sanitizeSpinnerValue(String value) {
@@ -266,10 +285,10 @@ public class ManageResultsActivity extends AppCompatActivity {
             return "";
         }
 
-        value = value.trim(); // Remove leading and trailing whitespace
-
-        if (value.isEmpty()) {
-            throw new IllegalArgumentException("Spinner value cannot be empty");
+        try {
+            value = value.trim();
+        }catch (Exception e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
 
         return value;
@@ -303,9 +322,7 @@ public class ManageResultsActivity extends AppCompatActivity {
         private String studentId;
         private List<SubjectResult> results;
 
-        public StudentResultData() {
-            // Default constructor required for calls to DataSnapshot.getValue(StudentResultData.class)
-        }
+        public StudentResultData() {}
 
         public StudentResultData(String year, String className, String term, String studentName, String studentId, List<SubjectResult> results) {
             this.year = year;
@@ -365,5 +382,4 @@ public class ManageResultsActivity extends AppCompatActivity {
             this.results = results;
         }
     }
-
 }

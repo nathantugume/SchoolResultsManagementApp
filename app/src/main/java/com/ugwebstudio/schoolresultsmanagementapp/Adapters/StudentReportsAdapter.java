@@ -11,6 +11,7 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ugwebstudio.schoolresultsmanagementapp.R;
+import com.ugwebstudio.schoolresultsmanagementapp.admin.NewCurriculumReport;
 import com.ugwebstudio.schoolresultsmanagementapp.admin.ViewReportActivity;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentResults;
 
@@ -72,21 +73,26 @@ public class StudentReportsAdapter extends RecyclerView.Adapter<StudentReportsAd
         }
 
         public void bind(StudentResults studentResults) {
-            nameTextView.setText(studentResults.getStudent());
+            nameTextView.setText(studentResults.getName());
             classTextView.setText(studentResults.getStudentClass());
             termTextView.setText(studentResults.getTerm());
-            resultsCard.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    // Open a new activity with the student results for the selected term and class
-                    Intent intent = new Intent(view.getContext(), ViewReportActivity.class);
-                    intent.putExtra("selectedClass", studentResults.getStudentClass());
-                    intent.putExtra("selectedTerm", studentResults.getTerm());
-                    intent.putExtra("studentId", studentResults.getStudentId());
-                    view.getContext().startActivity(intent);
+            resultsCard.setOnClickListener(view -> {
+                String studentClass = studentResults.getStudentClass();
+
+                Intent intent;
+                if (studentClass.equalsIgnoreCase("Senior Five") || studentClass.equalsIgnoreCase("Senior Six")) {
+                    intent = new Intent(view.getContext(), ViewReportActivity.class);
+                } else {
+                    intent = new Intent(view.getContext(), NewCurriculumReport.class);
                 }
+
+                intent.putExtra("selectedClass", studentResults.getStudentClass());
+                intent.putExtra("selectedTerm", studentResults.getTerm());
+                intent.putExtra("studentId", studentResults.getStudentId());
+                view.getContext().startActivity(intent);
             });
         }
+
     }
 
     public void filterList(String searchText) {

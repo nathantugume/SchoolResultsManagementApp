@@ -1,6 +1,5 @@
 package com.ugwebstudio.schoolresultsmanagementapp.admin;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,24 +16,22 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.ugwebstudio.schoolresultsmanagementapp.Adapters.StudentReportsAdapter;
-import com.ugwebstudio.schoolresultsmanagementapp.Adapters.StudentResultAdapter;
 import com.ugwebstudio.schoolresultsmanagementapp.R;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentClass;
 import com.ugwebstudio.schoolresultsmanagementapp.classes.StudentResults;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class StudentReportActivity extends AppCompatActivity {
 
-    private Spinner spinnerClass, spinnerTerms;
+    private Spinner spinnerClass, spinnerTerms, spinnerYear;
     private TextInputEditText editTextSearch;
     private RecyclerView recyclerViewStudents;
     private FirebaseFirestore db;
@@ -43,58 +40,64 @@ public class StudentReportActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private String selectedClass;
     private String selectedTerm;
+    private String selectedYear;
     private TextView txt_no_students;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student_report);
 
-
-
         progressDialog = new ProgressDialog(StudentReportActivity.this);
-        progressDialog.setMessage("Loading  students...");
+        progressDialog.setMessage("Loading students...");
         progressDialog.setCancelable(false);
         progressDialog.show();
+
         spinnerClass = findViewById(R.id.spinner_class);
         spinnerTerms = findViewById(R.id.spinner_term);
+        spinnerYear = findViewById(R.id.spinner_year);
         editTextSearch = findViewById(R.id.editText_search);
         recyclerViewStudents = findViewById(R.id.recycler_view_students);
         db = FirebaseFirestore.getInstance();
-
         txt_no_students = findViewById(R.id.txt_no_students);
         txt_no_students.setVisibility(View.GONE);
 
         loadClassesFromFirestore();
+        loadYearsFromFirestore();
+        loadTerms();
         setupRecyclerView();
 
-        // Listeners for class and term selection
-        spinnerClass.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        // Listeners for class, term, and year selection
+        AdapterView.OnItemSelectedListener selectionListener = new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                selectedClass = parent.getItemAtPosition(position).toString();
-                loadTerms();
-                loadStudentResultsFromFirestore(selectedClass, selectedTerm);
+                if (parent.getId() == R.id.spinner_class ){
+                    selectedClass = parent.getItemAtPosition(position).toString();
+                    loadStudentResultsFromFirestore(selectedClass, selectedTerm, selectedYear);
+                }
+
+                if (parent.getId() == R.id.spinner_term){
+                    selectedTerm = parent.getItemAtPosition(position).toString();
+                    loadStudentResultsFromFirestore(selectedClass, selectedTerm, selectedYear);
+                }
+                if (parent.getId() == R.id.spinner_year){
+                    selectedYear = parent.getItemAtPosition(position).toString();
+                    loadStudentResultsFromFirestore(selectedClass, selectedTerm, selectedYear);
+                }
+
+
 
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing if no class is selected
+                // Do nothing if no selection is made
             }
-        });
+        };
 
-        spinnerTerms.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                selectedTerm = parent.getItemAtPosition(position).toString();
-
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing if no term is selected
-            }
-        });
+        spinnerClass.setOnItemSelectedListener(selectionListener);
+        spinnerTerms.setOnItemSelectedListener(selectionListener);
+        spinnerYear.setOnItemSelectedListener(selectionListener);
 
         // Listener for search input
         editTextSearch.addTextChangedListener(new TextWatcher() {
@@ -113,45 +116,43 @@ public class StudentReportActivity extends AppCompatActivity {
                 // Not used
             }
         });
-
-
-
-
     }
 
-    private void loadStudentResultsFromFirestore(String selectedClass, String selectedTerm) {
-        progressDialog.setMessage("loading students...");
+    private void loadStudentResultsFromFirestore(String selectedClass, String selectedTerm, String selectedYear) {
+        if (selectedClass == null || selectedTerm == null || selectedYear == null) {
+            progressDialog.dismiss();
+            return;
+        }
+
+        progressDialog.setMessage("Loading students...");
         progressDialog.show();
         studentResultsList.clear(); // Clear the existing list
+
         db.collection("results")
-                .whereEqualTo("class", selectedClass)
+                .whereEqualTo("className", selectedClass)
                 .whereEqualTo("term", selectedTerm)
+                .whereEqualTo("year", selectedYear)
                 .get()
                 .addOnCompleteListener(task -> {
+                    progressDialog.dismiss();
                     if (task.isSuccessful()) {
                         txt_no_students.setVisibility(View.GONE);
-                        progressDialog.dismiss();
                         List<String> uniqueStudents = new ArrayList<>();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             StudentResults studentResults = document.toObject(StudentResults.class);
-                            studentResults.setStudentClass(document.getString("class"));
-                            String studentName = studentResults.getStudent();
+                            studentResults.setStudentClass(document.getString("className"));
+                            studentResults.setName(document.getString("studentName"));
+                            String studentName = studentResults.getName();
                             if (!uniqueStudents.contains(studentName)) {
                                 uniqueStudents.add(studentName);
                                 studentResultsList.add(studentResults);
-                                adapter.updateList(studentResultsList);
-                                Log.d("FirestoreResults", studentName);
                             }
                         }
-                        if (uniqueStudents.size()<1){
+                        if (uniqueStudents.size() < 1) {
                             txt_no_students.setVisibility(View.VISIBLE);
                             Toast.makeText(this, "No students found!!", Toast.LENGTH_SHORT).show();
-                            studentResultsList.clear(); // Clear the existing list
-                            adapter.updateList(studentResultsList);
-                            adapter.notifyDataSetChanged(); // Notify the adapter of data change
                         }
-                        Log.d("FirestoreResults", "Total unique students: " + uniqueStudents.size());
-                        adapter.notifyDataSetChanged(); // Notify the adapter of data change
+                        adapter.updateList(studentResultsList);
                     } else {
                         Toast.makeText(StudentReportActivity.this, "Failed to load student results", Toast.LENGTH_SHORT).show();
                         Log.e("FirestoreResults", "Failed to load student results", task.getException());
@@ -159,14 +160,11 @@ public class StudentReportActivity extends AppCompatActivity {
                 });
     }
 
-
-
     private void setupRecyclerView() {
         adapter = new StudentReportsAdapter(studentResultsList);
         recyclerViewStudents.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewStudents.setAdapter(adapter);
         adapter.updateList(studentResultsList);
-
     }
 
     private void filterStudentResults(String searchText) {
@@ -175,9 +173,7 @@ public class StudentReportActivity extends AppCompatActivity {
 
     // Method to load terms
     private void loadTerms() {
-        String[] termsArray = {
-                "Term One", "Term Two", "Term Three"
-        };
+        String[] termsArray = {"Term One", "Term Two", "Term Three"};
         ArrayAdapter<String> termsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, termsArray);
         termsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerTerms.setAdapter(termsAdapter);
@@ -187,11 +183,12 @@ public class StudentReportActivity extends AppCompatActivity {
     private void loadClassesFromFirestore() {
         progressDialog.setMessage("Loading Classes...");
         progressDialog.show();
+
         db.collection("classes")
                 .get()
                 .addOnCompleteListener(task -> {
+                    progressDialog.dismiss();
                     if (task.isSuccessful()) {
-                        progressDialog.dismiss();
                         List<String> classNames = new ArrayList<>();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             StudentClass studentClass = document.toObject(StudentClass.class);
@@ -200,10 +197,35 @@ public class StudentReportActivity extends AppCompatActivity {
                         ArrayAdapter<String> classAdapter = new ArrayAdapter<>(StudentReportActivity.this, android.R.layout.simple_spinner_item, classNames);
                         classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                         spinnerClass.setAdapter(classAdapter);
-
-
                     } else {
                         Toast.makeText(StudentReportActivity.this, "Failed to load classes", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    // Method to load years
+    private void loadYearsFromFirestore() {
+        progressDialog.setMessage("Loading Years...");
+        progressDialog.show();
+
+        db.collection("students")
+                .get()
+                .addOnCompleteListener(task -> {
+                    progressDialog.dismiss();
+                    if (task.isSuccessful()) {
+                        Set<String> years = new HashSet<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            String year = document.getString("academicYear");
+                            if (year != null) {
+                                years.add(year);
+                            }
+                        }
+                        List<String> yearList = new ArrayList<>(years);
+                        ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(StudentReportActivity.this, android.R.layout.simple_spinner_item, yearList);
+                        yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        spinnerYear.setAdapter(yearAdapter);
+                    } else {
+                        Toast.makeText(StudentReportActivity.this, "Failed to load years", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

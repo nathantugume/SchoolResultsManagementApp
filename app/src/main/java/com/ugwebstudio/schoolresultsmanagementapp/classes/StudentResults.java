@@ -1,7 +1,7 @@
 package com.ugwebstudio.schoolresultsmanagementapp.classes;
 
 public class StudentResults {
-   private String student;
+    private String student;
     private String studentClass;
     private String resultType;
     private String term;
@@ -9,9 +9,13 @@ public class StudentResults {
     private String studentId;
     private String subject;
     private int marks;
+    private String studentName;
+    private String name;
 
     public StudentResults() {
     }
+
+
 
     public StudentResults(String student, String studentClass, String resultType, String term, String class_name, String studentId, String subject, int marks) {
         this.student = student;
@@ -22,6 +26,34 @@ public class StudentResults {
         this.studentId = studentId;
         this.subject = subject;
         this.marks = marks;
+    }
+
+    public StudentResults(String student, String studentClass, String resultType, String term, String class_name, String studentId, String subject, int marks, String name) {
+        this.student = student;
+        this.studentClass = studentClass;
+        this.resultType = resultType;
+        this.term = term;
+        this.class_name = class_name;
+        this.studentId = studentId;
+        this.subject = subject;
+        this.marks = marks;
+        this.name = name;
+    }
+
+    public String getStudentName() {
+        return studentName;
+    }
+
+    public void setStudentName(String studentName) {
+        this.studentName = studentName;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getStudent() {

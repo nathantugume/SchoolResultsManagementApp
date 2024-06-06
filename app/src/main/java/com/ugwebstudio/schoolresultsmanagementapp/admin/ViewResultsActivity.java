@@ -270,10 +270,12 @@ public class ViewResultsActivity extends AppCompatActivity {
                             for (QueryDocumentSnapshot document : querySnapshot) {
                                 Log.d(TAG, "Document ID: " + document.getId());
                                 StudentResultData resultData = document.toObject(StudentResultData.class);
-                                Log.d(TAG, "Student ID: " + resultData.getStudentId());
-                                Log.d(TAG, "Student Name: " + resultData.getStudent());
-                                // Log other properties as needed
-                                populateResultsInTable(resultData);
+                                if (resultData != null) {
+                                    Log.d(TAG, "Student ID: " + resultData.getStudentId());
+                                    Log.d(TAG, "Student Name: " + resultData.getStudent());
+                                    // Log other properties as needed
+                                    populateResultsInTable(resultData);
+                                }
                             }
                         } else {
                             Toast.makeText(ViewResultsActivity.this, "No results found for the selected student", Toast.LENGTH_SHORT).show();

@@ -119,7 +119,7 @@ public class ViewReportActivity extends AppCompatActivity {
         progressDialog.show();
         // Fetch and display regular term results
         db.collection("results")
-                .whereEqualTo("class", selectedClass)
+                .whereEqualTo("className", selectedClass)
                 .whereEqualTo("term", selectedTerm)
                 .whereEqualTo("studentId", studentId)
                 .get()
@@ -129,7 +129,7 @@ public class ViewReportActivity extends AppCompatActivity {
                         Map<String, Map<String, Integer>> subjectResults = new HashMap<>();
                         task.getResult().forEach(document -> {
                             StudentResults studentResults = document.toObject(StudentResults.class);
-                            studentNameTxt.setText(studentResults.getStudent());
+                            studentNameTxt.setText(studentResults.getStudentName());
 
                             // Get subject and result type from Firestore document
                             String subject = document.getString("subject");

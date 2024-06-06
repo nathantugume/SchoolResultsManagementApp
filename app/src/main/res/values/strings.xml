@@ -36,8 +36,6 @@
         <item>Subsidiary Physical Education</item>
 
 
-
-
     </string-array>
 
     <string-array name="o_level_subs">
@@ -67,9 +65,9 @@
     </string-array>
 
     <string-array name="terms_array">
-        <item>Term 1</item>
-        <item>Term 2</item>
-        <item>Term 3</item>
+        <item>Term One</item>
+        <item>Term Two</item>
+        <item>Term Three</item>
     </string-array>
 
     <string-array name="classes_array">
@@ -77,10 +75,15 @@
         <item>senior two</item>
         <item>senior three</item>
         <item>senior four</item>
+        <!-- Add more classes as needed -->
+    </string-array>
+    <string-array name="a_leve_classes_array">
         <item>senior five</item>
         <item>senior six</item>
         <!-- Add more classes as needed -->
     </string-array>
+
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="students">Students</string>
@@ -102,6 +105,7 @@
     <string name="subject_s">Subject(s):</string>
     <string name="you_have_no_results_at_the_moment">You have no results at the moment</string>
     <string name="calculate">Calculate</string>
-
+    <string name="result_mastery">Result Mastery</string>
+    <string name="location">P.O.Box 245, Kiboga Rd</string>
 
 </resources>
